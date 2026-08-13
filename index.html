@@ -255,10 +255,6 @@
   }
 
   function saveToGoogleSheets() {
-    if (GOOGLE_SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
-      alert("Please paste your Google Apps Script URL in line 197 of this HTML file.");
-      return;
-    }
 
     const openKm = parseFloat(document.getElementById('in_openKm').value) || 0;
     const closeKm = parseFloat(document.getElementById('in_closeKm').value) || 0;
