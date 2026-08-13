@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NeeD - Complete Web Invoice Generator</title>
+<!-- html2pdf library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f1f5f9; margin: 0; padding: 20px; color: #0f172a; }
+  .wrapper { max-width: 900px; margin: 0 auto; }
+  
+  /* Input Control Panel */
+  .control-panel { background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 25px; }
+  .control-panel h2 { margin-top: 0; font-size: 14pt; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+  .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 15px; }
+  .form-group { display: flex; flex-direction: column; }
+  .form-group label { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 3px; }
+  .form-group input { padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 9pt; }
+  
+  .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+  button { padding: 10px 20px; font-size: 9pt; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+  .btn-save { background-color: #2563eb; color: #fff; }
+  .btn-pdf { background-color: #059669; color: #fff; }
+  button:hover { opacity: 0.9; }
+
+  /* Invoice Paper Styling (Matches Single-Page Layout) */
+  #invoice-container { background: #ffffff; width: 210mm; min-height: 297mm; margin: 0 auto; box-shadow: 0 0 10px rgba(0,0,0,0.15); box-sizing: border-box; }
+  .header-bg { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 16px 30px; }
+  .contact-bar { background-color: #020617; color: #cbd5e1; padding: 6px 30px; font-size: 8pt; border-bottom: 1px solid #1e293b; }
+  .gold-bar { height: 3px; background: linear-gradient(90deg, #d97706 0%, #fbbf24 50%, #d97706 100%); }
+  .invoice-body { padding: 18px 30px 10px 30px; font-size: 8.5pt; }
+  
+  .table-full { width: 100%; border-collapse: collapse; }
+  .info-card { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; }
+  .card-title { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 4px; border-bottom: 1px solid #e2e8f0; padding-bottom: 2px; }
+  .vehicle-strip { background-color: #0f172a; color: #ffffff; border-radius: 6px; padding: 8px 12px; margin: 10px 0; text-align: center; }
+  
+  .items-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+  .items-table th { background-color: #f1f5f9; color: #334155; font-size: 7.5pt; text-transform: uppercase; padding: 6px 8px; text-align: left; border-bottom: 2px solid #cbd5e1; }
+  .items-table td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; font-size: 8.5pt; }
+  
+  .calc-table td { padding: 3px 6px; font-size: 8.5pt; text-align: right; }
+  .calc-balance { background-color: #fef2f2; color: #991b1b; font-weight: 800; font-size: 10pt; }
+  .notes-box { background-color: #f8fafc; border-left: 3px solid #d97706; padding: 8px; font-size: 7.5pt; color: #475569; }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- Form Controls -->
+  <div class="control-panel">
+    <h2>NeeD Billing Input Panel</h2>
+    <div class="grid-form">
+      <div class="form-group"><label>Invoice No</label><input type="text" id="in_invNo" value="#NeeD-2026-0729-v3" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Customer Name</label><input type="text" id="in_name" value="Jitendra Kumar" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Date of Issue</label><input type="text" id="in_date" value="29 July 2026" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Vehicle Assigned</label><input type="text" id="in_vehicle" value="Mahindra XUV7XO" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Days</label><input type="number" id="in_days" value="7" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Daily Rate (₹)</label><input type="number" id="in_rate" value="8000" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Opening KM</label><input type="number" id="in_openKm" value="18162" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Closing KM</label><input type="number" id="in_closeKm" value="20174" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Extra KM Traveled</label><input type="number" id="in_extraKm" value="263" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Extra KM Rate (₹)</label><input type="number" id="in_extraKmRate" value="20" oninput="updatePreview()"></div>
+      <div class="form-group"><label>FASTag / Tolls (₹)</label><input type="number" id="in_fastag" value="0" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Washing / Detailing (₹)</label><input type="number" id="in_washing" value="500" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Traffic Challan (₹)</label><input type="number" id="in_challan" value="500" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Carried Forward (₹)</label><input type="number" id="in_oldBal" value="3500" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Amount Paid (₹)</label><input type="number" id="in_paid" value="50000" oninput="updatePreview()"></div>
+    </div>
+    <div class="btn-group">
+      <button class="btn-save" onclick="saveToGoogleSheets()">1. Save All Points to Google Sheets</button>
+      <button class="btn-pdf" onclick="downloadPDF()">2. Download Single-Page PDF</button>
+    </div>
+  </div>
+
+  <!-- PDF Preview Target -->
+  <div id="invoice-container">
+    <div class="header-bg">
+      <table class="table-full">
+        <tr>
+          <td><strong style="font-size: 18pt; color: #ffffff;">NeeD</strong></td>
+          <td style="text-align: right;">
+            <div style="font-size: 16pt; font-weight: 300; letter-spacing: 2px; color: #cbd5e1;">INVOICE</div>
+            <div style="color: #94a3b8; font-size: 8.5pt;" id="out_invNo">#NeeD-2026-0729-v3</div>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="contact-bar">
+      <table class="table-full">
+        <tr>
+          <td style="width: 50%;">📞 <span style="color:#f8fafc; font-weight:600;">9731055500</span></td>
+          <td style="width: 50%; text-align: right;">📸 <span style="color:#f8fafc; font-weight:600;">needcarsbygcr</span></td>
+        </tr>
+      </table>
+    </div>
+    <div class="gold-bar"></div>
+
+    <div class="invoice-body">
+      <table class="table-full" style="margin-bottom: 10px;">
+        <tr>
+          <td style="width: 50%; padding-right: 6px;">
+            <div class="info-card">
+              <div class="card-title">Billed To</div>
+              <div><strong>Customer Name:</strong> <span id="out_name">Jitendra Kumar</span></div>
+              <div><strong>Contact:</strong> Valued Client</div>
+              <div><strong>Billing Status:</strong> <span style="color: #d97706;">Balance Due</span></div>
+            </div>
+          </td>
+          <td style="width: 50%; padding-left: 6px;">
+            <div class="info-card">
+              <div class="card-title">Invoice Meta</div>
+              <div><strong>Date of Issue:</strong> <span id="out_date">29 July 2026</span></div>
+              <div><strong>Vehicle Assigned:</strong> <span id="out_vehicle">Mahindra XUV7XO</span></div>
+              <div><strong>Rental Type:</strong> Outstation / Multi-Day</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <div class="vehicle-strip">
+        <table class="table-full">
+          <tr>
+            <td><div style="font-size: 6.5pt; color: #94a3b8;">OPENING READING</div><strong id="out_openKm">18,162 KM</strong></td>
+            <td><div style="font-size: 6.5pt; color: #94a3b8;">CLOSING READING</div><strong id="out_closeKm">20,174 KM</strong></td>
+            <td><div style="font-size: 6.5pt; color: #94a3b8;">TOTAL DISTANCE</div><strong id="out_totalKm">2,012 KM</strong></td>
+            <td><div style="font-size: 6.5pt; color: #94a3b8;">RENTAL DURATION</div><strong id="out_days">7 Days</strong></td>
+          </tr>
+        </table>
+      </div>
+
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 45%;">Description / Service Item</th>
+            <th style="width: 15%; text-align: center;">Qty / Units</th>
+            <th style="width: 15%; text-align: right;">Rate (₹)</th>
+            <th style="width: 20%; text-align: right;">Amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="text-align: center;">1</td><td><strong>Vehicle Rental Charges</strong><br><span style="font-size: 7pt; color: #64748b;">Mahindra XUV7XO — Tariff for 7 Days</span></td><td style="text-align: center;" id="out_rentQty">7 Days</td><td style="text-align: right;" id="out_rentRate">8,000.00</td><td style="text-align: right;" id="out_rentAmt">56,000.00</td></tr>
+          <tr><td style="text-align: center;">2</td><td><strong>Extra Kilometers Charge</strong><br><span style="font-size: 7pt; color: #64748b;">263 km beyond base allowance</span></td><td style="text-align: center;" id="out_extraKmQty">263 KM</td><td style="text-align: right;" id="out_extraKmRate">20.00</td><td style="text-align: right;" id="out_extraKmAmt">5,260.00</td></tr>
+          <tr><td style="text-align: center;">3</td><td><strong>FASTag / Toll Charges</strong><br><span style="font-size: 7pt; color: #64748b;">Toll & Parking Re-imbursement</span></td><td style="text-align: center;">—</td><td style="text-align: right;" id="out_fastagRate">0.00</td><td style="text-align: right;" id="out_fastagAmt">0.00</td></tr>
+          <tr><td style="text-align: center;">4</td><td><strong>Vehicle Maintenance & Washing</strong><br><span style="font-size: 7pt; color: #64748b;">Post-trip interior & exterior detailing</span></td><td style="text-align: center;">1 Service</td><td style="text-align: right;" id="out_washRate">500.00</td><td style="text-align: right;" id="out_washAmt">500.00</td></tr>
+          <tr><td style="text-align: center;">5</td><td><strong>Traffic Challan / Fine</strong><br><span style="font-size: 7pt; color: #64748b;">Violation fine incurred during rental period</span></td><td style="text-align: center;">1 Violation</td><td style="text-align: right;" id="out_challanRate">500.00</td><td style="text-align: right;" id="out_challanAmt">500.00</td></tr>
+          <tr><td style="text-align: center;">6</td><td><strong>Previous Account Outstanding Balance</strong><br><span style="font-size: 7pt; color: #64748b;">Carried forward balance</span></td><td style="text-align: center;">1 Balance</td><td style="text-align: right;" id="out_oldBalRate">3,500.00</td><td style="text-align: right;" id="out_oldBalAmt">3,500.00</td></tr>
+        </tbody>
+      </table>
+
+      <table class="table-full">
+        <tr>
+          <td style="width: 52%; vertical-align: top; padding-right: 12px;">
+            <div class="notes-box">
+              <strong>Terms & Payment Instructions</strong><br>
+              • Balance payment of <strong id="out_noteBal">₹15,760</strong> is requested at the earliest.<br>
+              • Payment accepted via UPI, Bank Transfer, or Cash.<br>
+              • Fuel policy: Full-to-Full or as recorded prior to trip commencement.<br>
+              • Contact Support: <strong>9731055500</strong>
+            </div>
+          </td>
+          <td style="width: 48%; vertical-align: top;">
+            <table class="calc-table table-full">
+              <tr><td>Subtotal:</td><td id="out_subtotal">₹62,260.00</td></tr>
+              <tr><td>Carried Forward:</td><td id="out_oldBal">₹3,500.00</td></tr>
+              <tr style="font-weight: bold;"><td>Gross Total:</td><td id="out_grossTotal">₹65,760.00</td></tr>
+              <tr style="color: #166534;"><td>Amount Paid:</td><td id="out_paid">- ₹50,000.00</td></tr>
+              <tr class="calc-balance"><td>BALANCE DUE:</td><td id="out_balanceDue">₹15,760.00</td></tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+        <table class="table-full">
+          <tr>
+            <td><div style="border-top:1px solid #94a3b8; width:140px; margin-top:15px;"></div><div>Customer Signature</div><div style="font-size:7pt; color:#94a3b8;">Jitendra Kumar</div></td>
+            <td style="text-align: right;"><div style="border-top:1px solid #94a3b8; width:140px; margin-top:15px; margin-left:auto;"></div><div>Authorized Signatory</div><div style="font-size:7pt; color:#94a3b8;">NeeD - A product of GCR</div></td>
+          </tr>
+        </table>
+        <div style="text-align: center; font-weight: bold; margin-top: 8px;">NeeD - A product of GCR</div>
+        <div style="text-align: center; font-size: 7.5pt; color: #64748b; margin-top: 3px;">📞 9731055500 &nbsp;&nbsp;|&nbsp;&nbsp; 📸 needcarsbygcr</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Paste your deployment URL here
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwhKprM13pdAa_FDDfds-NYfF3-13uTg8ljrgLwZzxOJPfJevIEHWgN330Sf8qE9zlFog/exec";
+
+  function updatePreview() {
+    const invNo = document.getElementById('in_invNo').value;
+    const name = document.getElementById('in_name').value;
+    const date = document.getElementById('in_date').value;
+    const vehicle = document.getElementById('in_vehicle').value;
+    
+    const days = parseFloat(document.getElementById('in_days').value) || 0;
+    const rate = parseFloat(document.getElementById('in_rate').value) || 0;
+    const openKm = parseFloat(document.getElementById('in_openKm').value) || 0;
+    const closeKm = parseFloat(document.getElementById('in_closeKm').value) || 0;
+    const extraKmRate = parseFloat(document.getElementById('in_extraKmRate').value) || 0;
+    const extraKm = parseFloat(document.getElementById('in_extraKm').value) || 0;
+    const fastag = parseFloat(document.getElementById('in_fastag').value) || 0;
+    const washing = parseFloat(document.getElementById('in_washing').value) || 0;
+    const challan = parseFloat(document.getElementById('in_challan').value) || 0;
+    const oldBal = parseFloat(document.getElementById('in_oldBal').value) || 0;
+    const paid = parseFloat(document.getElementById('in_paid').value) || 0;
+
+    const totalKm = closeKm - openKm;
+    const rentAmt = days * rate;
+    const extraKmAmt = extraKm * extraKmRate;
+    const subtotal = rentAmt + extraKmAmt + fastag + washing + challan;
+    const grossTotal = subtotal + oldBal;
+    const balanceDue = grossTotal - paid;
+
+    // Display Bindings
+    document.getElementById('out_invNo').innerText = invNo;
+    document.getElementById('out_name').innerText = name;
+    document.getElementById('out_date').innerText = date;
+    document.getElementById('out_vehicle').innerText = vehicle;
+    document.getElementById('out_openKm').innerText = openKm.toLocaleString() + ' KM';
+    document.getElementById('out_closeKm').innerText = closeKm.toLocaleString() + ' KM';
+    document.getElementById('out_totalKm').innerText = totalKm.toLocaleString() + ' KM';
+    document.getElementById('out_days').innerText = days + ' Days';
+
+    document.getElementById('out_rentQty').innerText = days + ' Days';
+    document.getElementById('out_rentRate').innerText = rate.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_rentAmt').innerText = rentAmt.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+    document.getElementById('out_extraKmQty').innerText = extraKm + ' KM';
+    document.getElementById('out_extraKmRate').innerText = extraKmRate.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_extraKmAmt').innerText = extraKmAmt.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+    document.getElementById('out_fastagRate').innerText = fastag.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_fastagAmt').innerText = fastag.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+    document.getElementById('out_washRate').innerText = washing.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_washAmt').innerText = washing.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+    document.getElementById('out_challanRate').innerText = challan.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_challanAmt').innerText = challan.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+    document.getElementById('out_oldBalRate').innerText = oldBal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_oldBalAmt').innerText = oldBal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+
+    document.getElementById('out_subtotal').innerText = '₹' + subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_oldBal').innerText = '₹' + oldBal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_grossTotal').innerText = '₹' + grossTotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_paid').innerText = '- ₹' + paid.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_balanceDue').innerText = '₹' + balanceDue.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById('out_noteBal').innerText = '₹' + balanceDue.toLocaleString('en-IN');
+  }
+
+  function saveToGoogleSheets() {
+    if (GOOGLE_SCRIPT_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+      alert("Please paste your Google Apps Script URL in line 197 of this HTML file.");
+      return;
+    }
+
+    const openKm = parseFloat(document.getElementById('in_openKm').value) || 0;
+    const closeKm = parseFloat(document.getElementById('in_closeKm').value) || 0;
+    const days = parseFloat(document.getElementById('in_days').value) || 0;
+    const rate = parseFloat(document.getElementById('in_rate').value) || 0;
+    const extraKm = parseFloat(document.getElementById('in_extraKm').value) || 0;
+    const extraKmRate = parseFloat(document.getElementById('in_extraKmRate').value) || 0;
+    const fastag = parseFloat(document.getElementById('in_fastag').value) || 0;
+    const washing = parseFloat(document.getElementById('in_washing').value) || 0;
+    const challan = parseFloat(document.getElementById('in_challan').value) || 0;
+    const oldBal = parseFloat(document.getElementById('in_oldBal').value) || 0;
+    const paid = parseFloat(document.getElementById('in_paid').value) || 0;
+
+    const rentAmt = days * rate;
+    const extraKmAmt = extraKm * extraKmRate;
+    const subtotal = rentAmt + extraKmAmt + fastag + washing + challan;
+    const grossTotal = subtotal + oldBal;
+    const balanceDue = grossTotal - paid;
+
+    const payload = {
+      invoiceNo: document.getElementById('in_invNo').value,
+      customerName: document.getElementById('in_name').value,
+      date: document.getElementById('in_date').value,
+      vehicle: document.getElementById('in_vehicle').value,
+      openingKm: openKm,
+      closingKm: closeKm,
+      totalKm: closeKm - openKm,
+      days: days,
+      rentAmt: rentAmt,
+      extraKmAmt: extraKmAmt,
+      fastagAmt: fastag,
+      washing: washing,
+      challan: challan,
+      oldBal: oldBal,
+      subtotal: subtotal,
+      grossTotal: grossTotal,
+      paid: paid,
+      balanceDue: balanceDue
+    };
+
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(() => {
+      alert("All 18 billing points saved successfully to Google Sheets!");
+    }).catch(err => {
+      alert("Error saving record: " + err);
+    });
+  }
+
+  function downloadPDF() {
+    const element = document.getElementById('invoice-container');
+    const customerName = document.getElementById('in_name').value || 'Customer';
+    const invNo = document.getElementById('in_invNo').value || 'Invoice';
+    
+    const opt = {
+      margin: 0,
+      filename: `NeeD_Invoice_${customerName}_${invNo}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(element).save();
+  }
+
+  // Initial Calculation Run
+  updatePreview();
+</script>
+</body>
+</html>
