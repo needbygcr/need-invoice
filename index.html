@@ -32,7 +32,6 @@
   .inv-header-top { background: #0b132b; color: #ffffff; padding: 18px 24px 12px 24px; }
   .brand-row { display: flex; justify-content: space-between; align-items: center; }
   
-  /* Top-Left Logo Styling (Only Logo, No Text) */
   .top-left-logo { max-height: 52px; max-width: 180px; object-fit: contain; display: block; }
   
   .inv-meta-right { text-align: right; }
@@ -131,8 +130,8 @@
     <div class="grid-4">
       <div class="form-group"><label>Opening FASTag (₹)</label><input type="number" id="in_openFastag" value="1000" oninput="updatePreview()"></div>
       <div class="form-group"><label>Closing FASTag (₹)</label><input type="number" id="in_closeFastag" value="1000" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Fuel Charges (₹)</label><input type="number" id="in_fuel" value="0" oninput="updatePreview()"></div>
       <div class="form-group"><label>Pickup & Drop (₹)</label><input type="number" id="in_pickupDrop" value="0" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Fuel Charges (₹)</label><input type="number" id="in_fuel" value="0" oninput="updatePreview()"></div>
     </div>
     <div class="grid-4">
       <div class="form-group"><label>Washing / Detailing (₹)</label><input type="number" id="in_washing" value="500" oninput="updatePreview()"></div>
@@ -163,7 +162,6 @@
       <div>
         <div class="inv-header-top">
           <div class="brand-row">
-            <!-- Top-Left: Logo Only -->
             <div>
               <img id="out_topLogo" src="./logo.png" alt="Company Logo" class="top-left-logo">
             </div>
@@ -217,6 +215,7 @@
             </div>
           </div>
 
+          <!-- Particulars Table -->
           <table>
             <thead>
               <tr>
@@ -227,7 +226,8 @@
                 <th class="text-right" style="width: 110px;">Amount (₹)</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="invoiceTableBody">
+              <!-- 1. Vehicle Rental Charges -->
               <tr>
                 <td class="text-center">1</td>
                 <td>
@@ -239,6 +239,7 @@
                 <td class="text-right font-bold" id="out_packageAmt">56,000.00</td>
               </tr>
 
+              <!-- 2. Extra Kilometers Charge -->
               <tr>
                 <td class="text-center">2</td>
                 <td>
@@ -250,6 +251,7 @@
                 <td class="text-right font-bold" id="out_extraKmAmt">5,240.00</td>
               </tr>
 
+              <!-- 3. Extra Days Charge -->
               <tr id="row_extraDays" style="display: none;">
                 <td class="text-center">3</td>
                 <td>
@@ -261,6 +263,7 @@
                 <td class="text-right font-bold" id="out_extraDaysAmt">0.00</td>
               </tr>
 
+              <!-- 4. FASTag / Toll Charges -->
               <tr>
                 <td class="text-center">4</td>
                 <td>
@@ -272,8 +275,21 @@
                 <td class="text-right font-bold" id="out_fastagAmt">0.00</td>
               </tr>
 
-              <tr>
+              <!-- 5. Pickup & Drop Charges -->
+              <tr id="row_pickupDrop" style="display: none;">
                 <td class="text-center">5</td>
+                <td>
+                  <div class="item-title">Pickup & Drop Charges</div>
+                  <div class="item-sub">Doorstep delivery and pickup service</div>
+                </td>
+                <td class="text-center">Doorstep</td>
+                <td class="text-right" id="out_pickupDropRate">0.00</td>
+                <td class="text-right font-bold" id="out_pickupDropAmt">0.00</td>
+              </tr>
+
+              <!-- 6. Vehicle Maintenance & Washing -->
+              <tr>
+                <td class="text-center">6</td>
                 <td>
                   <div class="item-title">Vehicle Maintenance & Washing</div>
                   <div class="item-sub">Post-trip interior & exterior detailing</div>
@@ -283,8 +299,9 @@
                 <td class="text-right font-bold" id="out_washingAmt">500.00</td>
               </tr>
 
+              <!-- 7. Traffic Challan / Fine -->
               <tr>
-                <td class="text-center">6</td>
+                <td class="text-center">7</td>
                 <td>
                   <div class="item-title">Traffic Challan / Fine</div>
                   <div class="item-sub">Violation fine incurred during rental period</div>
@@ -294,8 +311,9 @@
                 <td class="text-right font-bold" id="out_challanAmt">500.00</td>
               </tr>
 
+              <!-- 8. Fuel Charges -->
               <tr id="row_fuel" style="display: none;">
-                <td class="text-center">7</td>
+                <td class="text-center">8</td>
                 <td>
                   <div class="item-title">Fuel / Refueling Charges</div>
                   <div class="item-sub">Fuel adjustment recorded post trip</div>
@@ -305,8 +323,9 @@
                 <td class="text-right font-bold" id="out_fuelAmt">0.00</td>
               </tr>
 
+              <!-- 9. Damage / Miscellaneous Charges -->
               <tr id="row_damage" style="display: none;">
-                <td class="text-center">8</td>
+                <td class="text-center">9</td>
                 <td>
                   <div class="item-title">Damage / Miscellaneous Charges</div>
                   <div class="item-sub" id="out_damageSub">Vehicle repair/damage assessment</div>
@@ -316,8 +335,9 @@
                 <td class="text-right font-bold" id="out_damageAmt">0.00</td>
               </tr>
 
+              <!-- 10. Previous Account Outstanding Balance -->
               <tr>
-                <td class="text-center">9</td>
+                <td class="text-center">10</td>
                 <td>
                   <div class="item-title">Previous Account Outstanding Balance</div>
                   <div class="item-sub">Carried forward balance</div>
@@ -329,6 +349,7 @@
             </tbody>
           </table>
 
+          <!-- Bottom Summary & Instructions -->
           <div class="summary-section">
             <div class="terms-box">
               <div class="terms-title">Terms & Payment Instructions</div>
@@ -376,6 +397,7 @@
         </div>
       </div>
 
+      <!-- Footer & Dual Signature -->
       <div class="inv-footer">
         <div class="sig-grid">
           <div class="sig-box">
@@ -449,6 +471,7 @@
     document.getElementById('out_extraKmRate').innerText = extraKmRate.toLocaleString('en-IN', {minimumFractionDigits: 2});
     document.getElementById('out_extraKmAmt').innerText = extraKmAmt.toLocaleString('en-IN', {minimumFractionDigits: 2});
 
+    // Extra Days
     const extraDays = parseFloat(document.getElementById('in_extraDays').value) || 0;
     const extraDayRate = parseFloat(document.getElementById('in_extraDayRate').value) || 0;
     const extraDaysAmt = extraDays * extraDayRate;
@@ -462,6 +485,7 @@
       extraDaysRow.style.display = 'none';
     }
 
+    // FASTag
     const openFastag = parseFloat(document.getElementById('in_openFastag').value) || 0;
     const closeFastag = parseFloat(document.getElementById('in_closeFastag').value) || 0;
     const useFastag = (openFastag >= closeFastag) ? (openFastag - closeFastag) : 0;
@@ -469,6 +493,18 @@
     document.getElementById('out_fastagRate').innerText = useFastag.toLocaleString('en-IN', {minimumFractionDigits: 2});
     document.getElementById('out_fastagAmt').innerText = useFastag.toLocaleString('en-IN', {minimumFractionDigits: 2});
 
+    // Pickup & Drop
+    const pickupDrop = parseFloat(document.getElementById('in_pickupDrop').value) || 0;
+    const rowPickupDrop = document.getElementById('row_pickupDrop');
+    if (pickupDrop > 0) {
+      rowPickupDrop.style.display = '';
+      document.getElementById('out_pickupDropRate').innerText = pickupDrop.toLocaleString('en-IN', {minimumFractionDigits: 2});
+      document.getElementById('out_pickupDropAmt').innerText = pickupDrop.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    } else {
+      rowPickupDrop.style.display = 'none';
+    }
+
+    // Washing & Challan
     const washing = parseFloat(document.getElementById('in_washing').value) || 0;
     const challan = parseFloat(document.getElementById('in_challan').value) || 0;
     document.getElementById('out_washingRate').innerText = washing.toLocaleString('en-IN', {minimumFractionDigits: 2});
@@ -476,6 +512,7 @@
     document.getElementById('out_challanRate').innerText = challan.toLocaleString('en-IN', {minimumFractionDigits: 2});
     document.getElementById('out_challanAmt').innerText = challan.toLocaleString('en-IN', {minimumFractionDigits: 2});
 
+    // Fuel
     const fuel = parseFloat(document.getElementById('in_fuel').value) || 0;
     const rowFuel = document.getElementById('row_fuel');
     if (fuel > 0) {
@@ -486,6 +523,7 @@
       rowFuel.style.display = 'none';
     }
 
+    // Damage / Miscellaneous
     const damage = parseFloat(document.getElementById('in_damage').value) || 0;
     const damageDetails = document.getElementById('in_damageDetails').value || "None";
     const rowDamage = document.getElementById('row_damage');
@@ -498,13 +536,13 @@
       rowDamage.style.display = 'none';
     }
 
+    // Carried Forward & Totals
     const carriedForward = parseFloat(document.getElementById('in_carriedForward').value) || 0;
     document.getElementById('out_cfRate').innerText = carriedForward.toLocaleString('en-IN', {minimumFractionDigits: 2});
     document.getElementById('out_cfAmt').innerText = carriedForward.toLocaleString('en-IN', {minimumFractionDigits: 2});
     document.getElementById('out_carriedForward').innerText = '₹' + carriedForward.toLocaleString('en-IN', {minimumFractionDigits: 2});
 
-    const pickupDrop = parseFloat(document.getElementById('in_pickupDrop').value) || 0;
-    const subtotal = packageAmt + extraKmAmt + extraDaysAmt + useFastag + washing + challan + fuel + damage + pickupDrop;
+    const subtotal = packageAmt + extraKmAmt + extraDaysAmt + useFastag + pickupDrop + washing + challan + fuel + damage;
 
     const gstRate = parseFloat(document.getElementById('in_gstRate').value) || 0;
     const gstAmt = (subtotal * gstRate) / 100;
