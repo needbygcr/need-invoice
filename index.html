@@ -181,7 +181,7 @@
     <div class="grid-4">
      <div class="form-group"><label>GST (%)</label><input type="number" id="in_gstRate" value="5" readonly style="background-color: #e2e8f0; color: #64748b; border: 1px solid #cbd5e1; cursor: not-allowed;" oninput="updatePreview()"></div>
       <div class="form-group"><label>Discount (₹)</label><input type="number" id="in_discount" value="0" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Carried Forward (₹)</label><input type="number" id="in_carriedForward" value="3500" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Booking Advance / Token Paid (₹)</label><input type="number" id="in_carriedForward" value="0" placeholder="0" oninput="updatePreview()"></div>
       <div class="form-group"><label>Amount Paid (₹)</label><input type="number" id="in_paid" value="50000" oninput="updatePreview()"></div>
     </div>
 
@@ -371,16 +371,7 @@
                 <td class="text-right font-bold" id="out_damageAmt">0.00</td>
               </tr>
 
-              <!-- 10. Previous Account Outstanding Balance -->
-              <tr>
-                <td class="text-center">10</td>
-                <td>
-                  <div class="item-title">Previous Account Outstanding Balance</div>
-                  <div class="item-sub">Carried forward balance</div>
-                </td>
-                <td class="text-center">1 Balance</td>
-                <td class="text-right" id="out_cfRate">3,500.00</td>
-                <td class="text-right font-bold" id="out_cfAmt">3,500.00</td>
+              
               </tr>
             </tbody>
           </table>
@@ -409,9 +400,9 @@
                   <td>Discount Applied:</td>
                   <td class="text-right" id="out_discountAmt">- ₹0.00</td>
                 </tr>
-                <tr>
-                  <td>Carried Forward:</td>
-                  <td class="text-right" id="out_carriedForward">₹3,500.00</td>
+                <tr id="row_carriedForward" style="display: none; color: #16a34a;">
+                  <td>Less: Booking Advance/Token Amount:</td>
+                  <td class="text-right" id="out_carriedForward">- ₹0.00</td>
                 </tr>
                 <tr class="gross-total-row">
                   <td>Gross Total:</td>
@@ -572,64 +563,96 @@
       rowDamage.style.display = 'none';
     }
 
-    // Carried Forward & Totals
-    const carriedForward = parseFloat(document.getElementById('in_carriedForward').value) || 0;
-    document.getElementById('out_cfRate').innerText = carriedForward.toLocaleString('en-IN', {minimumFractionDigits: 2});
-    document.getElementById('out_cfAmt').innerText = carriedForward.toLocaleString('en-IN', {minimumFractionDigits: 2});
-    document.getElementById('out_carriedForward').innerText = '₹' + carriedForward.toLocaleString('en-IN', {minimumFractionDigits: 2});
+   // 1. Calculate trip charges subtotal
+  const subtotal = rentAmt + extraKmAmt + extraDaysAmt + useFastag + pickupDrop + washing + challan + fuel + damage;
 
-    const subtotal = packageAmt + extraKmAmt + extraDaysAmt + useFastag + pickupDrop + washing + challan + fuel + damage;
-
-   const gstRate = 5;
+  // 2. GST (5%) & Discount
+  const gstRate = parseFloat(document.getElementById('in_gstRate')?.value) || 5;
   const gstAmt = (subtotal * gstRate) / 100;
-  const discount = parseFloat(document.getElementById('in_discount').value) || 0;
+  const discount = parseFloat(document.getElementById('in_discount')?.value) || 0;
 
+  // 3. Gross Total Bill
+  const grossTotal = Math.max(0, subtotal + gstAmt - discount);
+
+  // 4. Payments received (Advance + Settlement Paid)
+  const bookingAdvance = parseFloat(document.getElementById('in_carriedForward')?.value) || 0;
+  const amountPaid = parseFloat(document.getElementById('in_paid')?.value) || 0;
+  const totalPaid = bookingAdvance + amountPaid;
+
+  // 5. Final Balance Due
+  const balanceDue = grossTotal - totalPaid;
+
+  // 6. Update Output Display
+  document.getElementById('out_subtotal').innerText = '₹' + subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+  
+  // GST Row Visibility & Amount
   const rowGst = document.getElementById('row_gstSummary');
   if (rowGst) {
-    rowGst.style.display = '';
-    document.getElementById('out_gstPct').innerText = '5%';
+    rowGst.style.display = gstAmt > 0 ? '' : 'none';
     document.getElementById('out_gstAmt').innerText = '+ ₹' + gstAmt.toLocaleString('en-IN', {minimumFractionDigits: 2});
   }
 
-    const rowDisc = document.getElementById('row_discountSummary');
-    if (discount > 0) {
-      rowDisc.style.display = '';
-      document.getElementById('out_discountAmt').innerText = '- ₹' + discount.toLocaleString('en-IN', {minimumFractionDigits: 2});
+  // Discount Row Visibility & Amount
+  const rowDiscount = document.getElementById('row_discountSummary');
+  if (rowDiscount) {
+    rowDiscount.style.display = discount > 0 ? '' : 'none';
+    document.getElementById('out_discountAmt').innerText = '- ₹' + discount.toLocaleString('en-IN', {minimumFractionDigits: 2});
+  }
+
+  document.getElementById('out_grossTotal').innerText = '₹' + grossTotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+  
+  // Show / Hide Booking Advance deduction row
+  const rowAdvance = document.getElementById('row_carriedForward');
+  if (rowAdvance) {
+    if (bookingAdvance > 0) {
+      rowAdvance.style.display = '';
+      document.getElementById('out_carriedForward').innerText = '- ₹' + bookingAdvance.toLocaleString('en-IN', {minimumFractionDigits: 2});
     } else {
-      rowDisc.style.display = 'none';
+      rowAdvance.style.display = 'none';
     }
+  }
 
-    const grossTotal = (subtotal + gstAmt + carriedForward) - discount;
-    const paid = parseFloat(document.getElementById('in_paid').value) || 0;
-    const balanceDue = grossTotal - paid;
+  // Amount Paid Row
+  const outPaid = document.getElementById('out_paid');
+  if (outPaid) {
+    outPaid.innerText = '- ₹' + amountPaid.toLocaleString('en-IN', {minimumFractionDigits: 2});
+  }
 
-    document.getElementById('out_subtotal').innerText = '₹' + subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
-    document.getElementById('out_grossTotal').innerText = '₹' + grossTotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
-    document.getElementById('out_paid').innerText = '- ₹' + paid.toLocaleString('en-IN', {minimumFractionDigits: 2});
+  // 7. Update Balance Due Strip / Status Badge
+  const badgeStatus = document.getElementById('out_billingStatusBadge');
+  const balanceLabel = document.getElementById('out_balanceLabel');
+  const balanceAmt = document.getElementById('out_balanceAmt');
 
-    const badgeStatus = document.getElementById('out_billingStatusBadge');
-    const balanceStrip = document.getElementById('out_balanceStrip');
-    const balanceLabel = document.getElementById('out_balanceLabel');
-    const balanceAmt = document.getElementById('out_balanceAmt');
-
-    if (balanceDue <= 0) {
-      badgeStatus.innerText = "PAID";
-      badgeStatus.style.color = "#059669";
-      balanceStrip.style.background = "#dcfce7";
-      balanceLabel.innerText = "PAID IN FULL:";
-      balanceLabel.style.color = "#166534";
+  if (balanceDue === 0 && grossTotal > 0) {
+    if (badgeStatus) { badgeStatus.innerText = "PAID"; badgeStatus.style.color = "#16a34a"; }
+    if (balanceLabel) balanceLabel.innerText = "PAID IN FULL:";
+    if (balanceAmt) {
       balanceAmt.innerText = "₹0.00";
-      balanceAmt.style.color = "#166534";
-    } else {
-      badgeStatus.innerText = "Balance Due";
-      badgeStatus.style.color = "#d97706";
-      balanceStrip.style.background = "#fef2f2";
-      balanceLabel.innerText = "BALANCE DUE:";
-      balanceLabel.style.color = "#991b1b";
+      balanceAmt.style.color = "#16a34a";
+    }
+  } else if (balanceDue > 0) {
+    if (badgeStatus) { badgeStatus.innerText = "Balance Due"; badgeStatus.style.color = "#d97706"; }
+    if (balanceLabel) balanceLabel.innerText = "BALANCE DUE:";
+    if (balanceAmt) {
       balanceAmt.innerText = '₹' + balanceDue.toLocaleString('en-IN', {minimumFractionDigits: 2});
       balanceAmt.style.color = "#dc2626";
     }
+  } else if (balanceDue < 0) {
+    if (badgeStatus) { badgeStatus.innerText = "Refund Due"; badgeStatus.style.color = "#2563eb"; }
+    if (balanceLabel) balanceLabel.innerText = "REFUND TO CUSTOMER:";
+    if (balanceAmt) {
+      balanceAmt.innerText = '₹' + Math.abs(balanceDue).toLocaleString('en-IN', {minimumFractionDigits: 2});
+      balanceAmt.style.color = "#2563eb";
+    }
+  } else {
+    if (badgeStatus) { badgeStatus.innerText = "PAID"; badgeStatus.style.color = "#16a34a"; }
+    if (balanceLabel) balanceLabel.innerText = "TOTAL DUE:";
+    if (balanceAmt) {
+      balanceAmt.innerText = "₹0.00";
+      balanceAmt.style.color = "#166534";
+    }
   }
+}
 function getNextInvoiceNumber(increment = false) {
   const now = new Date();
   const d = String(new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit' }).format(now));
