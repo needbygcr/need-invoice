@@ -180,7 +180,7 @@
     <div class="section-label">4. Tax, Discounts, Carried Forward & Settlement</div>
     <div class="grid-4">
      <div class="form-group"><label>GST (%)</label><input type="number" id="in_gstRate" value="5" readonly style="background-color: #e2e8f0; color: #64748b; border: 1px solid #cbd5e1; cursor: not-allowed;" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Discount (₹)</label><input type="number" id="in_discount" value="0" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Discount (%)</label><input type="number" id="in_discount" value="0" placeholder="0" oninput="updatePreview()"></div>
       <div class="form-group"><label>Booking Advance / Token Paid (₹)</label><input type="number" id="in_carriedForward" value="0" placeholder="0" oninput="updatePreview()"></div>
       <div class="form-group"><label>Amount Paid (₹)</label><input type="number" id="in_paid" value="" oninput="updatePreview()"></div>
     </div>
@@ -569,10 +569,11 @@
   // 2. GST (5%) & Discount
   const gstRate = parseFloat(document.getElementById('in_gstRate')?.value) || 5;
   const gstAmt = (subtotal * gstRate) / 100;
-  const discount = parseFloat(document.getElementById('in_discount')?.value) || 0;
+  const discountPct = parseFloat(document.getElementById('in_discount')?.value) || 0;
+  const discountAmt = (subtotal * discountPct) / 100;
 
   // 3. Gross Total Bill
-  const grossTotal = Math.max(0, subtotal + gstAmt - discount);
+  const grossTotal = Math.max(0, subtotal + gstAmt - discountAmt);
 
   // 4. Payments received (Advance + Settlement Paid)
   const bookingAdvance = parseFloat(document.getElementById('in_carriedForward')?.value) || 0;
@@ -595,8 +596,11 @@
   // Discount Row Visibility & Amount
   const rowDiscount = document.getElementById('row_discountSummary');
   if (rowDiscount) {
-    rowDiscount.style.display = discount > 0 ? '' : 'none';
-    document.getElementById('out_discountAmt').innerText = '- ₹' + discount.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    rowDiscount.style.display = discountAmt > 0 ? '' : 'none';
+    const pctEl = document.getElementById('out_discountPct');
+    if (pctEl) pctEl.innerText = discountPct + '%';
+    const amtEl = document.getElementById('out_discountAmt');
+    if (amtEl) amtEl.innerText = '- ₹' + discountAmt.toLocaleString('en-IN', {minimumFractionDigits: 2});
   }
 
   document.getElementById('out_grossTotal').innerText = '₹' + grossTotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
