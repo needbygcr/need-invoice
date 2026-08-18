@@ -81,6 +81,43 @@
   .sig-line { border-top: 1px solid #94a3b8; margin-top: 26px; margin-bottom: 4px; }
   .sig-text { font-size: 7.5pt; color: #475569; }
   .bottom-center-credit { text-align: center; font-size: 7.5pt; color: #475569; border-top: 1px solid #f1f5f9; padding-top: 6px; }
+ @media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+  body {
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .panel, .actions, button {
+    display: none !important;
+  }
+  .container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+  .preview-wrapper {
+    width: 100% !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+  .invoice-box {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+}
 </style>
 </head>
 <body>
@@ -598,26 +635,8 @@
   }
 
   function downloadPDF() {
-  const element = document.getElementById('invoicePreview');
-  const invNo = document.getElementById('in_invNo').value || "Invoice";
+  window.print();
 
-  const opt = {
-    margin:       [10, 10, 10, 10], // top, left, bottom, right margin in mm
-    filename:     `${invNo}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { 
-      scale: 2, 
-      useCORS: true,
-      logging: false,
-      scrollY: 0,
-      scrollX: 0,
-      windowWidth: 1000 // Mobile par screen width ki vajah se right side nahi katega
-    },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-  };
-
-  html2pdf().set(opt).from(element).save();
   }
 
   function saveToGoogleSheets() {
