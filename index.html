@@ -602,17 +602,19 @@
   const invNo = document.getElementById('in_invNo').value || "Invoice";
 
   const opt = {
-    margin:       0,
+    margin:       [10, 10, 10, 10], // top, left, bottom, right margin in mm
     filename:     `${invNo}.pdf`,
-    image:        { type: 'jpeg', quality: 1.0 },
+    image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { 
       scale: 2, 
-      useCORS: true, 
-      scrollX: 0, 
+      useCORS: true,
+      logging: false,
       scrollY: 0,
-      windowWidth: 850
+      scrollX: 0,
+      windowWidth: 1000 // Mobile par screen width ki vajah se right side nahi katega
     },
-    jsPDF:        { unit: 'pt', format: 'a4', orientation: 'portrait' }
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
   };
 
   html2pdf().set(opt).from(element).save();
