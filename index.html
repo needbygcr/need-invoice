@@ -630,13 +630,44 @@
       balanceAmt.style.color = "#dc2626";
     }
   }
+function getNextInvoiceNumber(increment = false) {
+  const now = new Date();
+  const d = String(new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit' }).format(now));
+  const m = String(new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', month: '2-digit' }).format(now));
+  const y = String(new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', year: '2-digit' }).format(now));
+  
+  const dateCode = `${d}${m}${y}`; // e.g. 190826
+  const savedDate = localStorage.getItem('need_inv_date');
+  let count = parseInt(localStorage.getItem('need_inv_seq') || "0", 10);
+
+  if (savedDate !== dateCode) {
+    count = 1;
+    localStorage.setItem('need_inv_date', dateCode);
+    localStorage.setItem('need_inv_seq', "1");
+  } else if (increment) {
+    count += 1;
+    localStorage.setItem('need_inv_seq', count.toString());
+  } else if (count === 0) {
+    count = 1;
+    localStorage.setItem('need_inv_seq', "1");
+  }
+
+  const seqStr = String(count).padStart(3, '0');
+  return `NeeD-${dateCode}-${seqStr}`;
+}
 
 function saveAndDownloadPDF() {
+  const newInvNo = getNextInvoiceNumber(true);
+  const invInput = document.getElementById('in_invNo');
+  if (invInput) invInput.value = newInvNo;
+  if (typeof updatePreview === 'function') updatePreview();
+
   const btn = document.querySelector('.btn-save');
   const originalText = btn ? btn.innerText : "";
   if (btn) {
     btn.innerText = "⏳ Processing...";
     btn.disabled = true;
+  
   }
 
   const openKm = parseFloat(document.getElementById('in_openKm').value) || 0;
@@ -711,7 +742,13 @@ function saveAndDownloadPDF() {
   });
 }
 window.addEventListener('DOMContentLoaded', () => {
-  // Format live date as DD/MM/YYYY in Indian Standard Time (IST)
+  // Set serial invoice number (e.g. NeeD-190826-001)
+  const invInput = document.getElementById('in_invNo');
+  if (invInput) {
+    invInput.value = getNextInvoiceNumber(false);
+  }
+
+  // Set IST Date
   const todayIST = new Intl.DateTimeFormat('en-IN', {
     timeZone: 'Asia/Kolkata',
     day: '2-digit',
@@ -723,7 +760,9 @@ window.addEventListener('DOMContentLoaded', () => {
   if (dateInput) {
     dateInput.value = todayIST;
   }
+
   updatePreview();
+
 });
   
 </script>
