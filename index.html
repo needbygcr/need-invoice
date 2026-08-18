@@ -464,12 +464,12 @@
   document.getElementById('in_date').value = new Date().toISOString().split('T')[0];
 
   function updatePreview() {
-    const invNo = document.getElementById('in_invNo').value || "NeeD-2026-0729-v3";
-    const name = document.getElementById('in_name').value || "Jitendra Kumar";
-    const contact = document.getElementById('in_contact').value || "9876543210";
-    const date = document.getElementById('in_date').value || "29 July 2026";
-    const vehicle = document.getElementById('in_vehicle').value || "Mahindra XUV7XO";
-    const compGst = document.getElementById('in_compGst').value || "07AAAAA0000A1Z5";
+    const invNo = document.getElementById('in_invNo').value || "";
+    const name = document.getElementById('in_name').value || "";
+    const contact = document.getElementById('in_contact').value || "";
+    const date = document.getElementById('in_date').value || "";
+    const vehicle = document.getElementById('in_vehicle').value || "";
+    const compGst = document.getElementById('in_compGst').value || "29AAKCG5719K1Z1";
     const rentalType = document.getElementById('in_rentalType').value;
 
     document.getElementById('out_invNo').innerText = invNo;
