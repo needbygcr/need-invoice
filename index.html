@@ -633,71 +633,85 @@
     }
   }
 
-  function downloadPDF() {
-  window.print();
-
+function saveAndDownloadPDF() {
+  const btn = document.querySelector('.btn-save');
+  const originalText = btn ? btn.innerText : "";
+  if (btn) {
+    btn.innerText = "⏳ Processing...";
+    btn.disabled = true;
   }
 
-  function saveToGoogleSheets() {
-    const openKm = parseFloat(document.getElementById('in_openKm').value) || 0;
-    const closeKm = parseFloat(document.getElementById('in_closeKm').value) || 0;
-    const useKm = Math.max(0, closeKm - openKm);
-    const allowKm = parseFloat(document.getElementById('in_allowKm').value) || 0;
-    const extraKm = Math.max(0, useKm - allowKm);
+  const openKm = parseFloat(document.getElementById('in_openKm').value) || 0;
+  const closeKm = parseFloat(document.getElementById('in_closeKm').value) || 0;
+  const useKm = Math.max(0, closeKm - openKm);
+  const allowKm = parseFloat(document.getElementById('in_allowKm').value) || 0;
+  const extraKm = Math.max(0, useKm - allowKm);
 
-    const openFastag = parseFloat(document.getElementById('in_openFastag').value) || 0;
-    const closeFastag = parseFloat(document.getElementById('in_closeFastag').value) || 0;
-    const useFastag = Math.max(0, openFastag - closeFastag);
+  const openFastag = parseFloat(document.getElementById('in_openFastag').value) || 0;
+  const closeFastag = parseFloat(document.getElementById('in_closeFastag').value) || 0;
+  const useFastag = Math.max(0, openFastag - closeFastag);
 
-    const payload = {
-      type: "invoice",
-      invoiceNo: document.getElementById('in_invNo').value,
-      date: document.getElementById('in_date').value,
-      compDetails: "NeeD CARS - 9731055500",
-      compGst: document.getElementById('in_compGst').value,
-      customerName: document.getElementById('in_name').value,
-      customerNumber: document.getElementById('in_contact').value,
-      vehicleNameNumber: document.getElementById('in_vehicle').value,
-      rentalType: document.getElementById('in_rentalType').value,
-      openKm: openKm,
-      closeKm: closeKm,
-      useKm: useKm,
-      allowKm: allowKm,
-      extraKm: extraKm,
-      extraKmRate: document.getElementById('in_extraKmRate').value,
-      extraKmAmt: extraKm * (parseFloat(document.getElementById('in_extraKmRate').value) || 0),
-      openFastag: openFastag,
-      closeFastag: closeFastag,
-      useFastag: useFastag,
-      days: document.getElementById('in_days').value,
-      perDayRate: document.getElementById('in_rate').value,
-      rentAmt: (parseFloat(document.getElementById('in_days').value) || 0) * (parseFloat(document.getElementById('in_rate').value) || 0),
-      extraDays: document.getElementById('in_extraDays').value,
-      extraDayRate: document.getElementById('in_extraDayRate').value,
-      extraDaysAmt: (parseFloat(document.getElementById('in_extraDays').value) || 0) * (parseFloat(document.getElementById('in_extraDayRate').value) || 0),
-      fuel: document.getElementById('in_fuel').value,
-      pickupDrop: document.getElementById('in_pickupDrop').value,
-      washing: document.getElementById('in_washing').value,
-      challan: document.getElementById('in_challan').value,
-      damageDetails: document.getElementById('in_damageDetails').value,
-      damageAmt: document.getElementById('in_damage').value,
-      gstRate: document.getElementById('in_gstRate').value,
-      discount: document.getElementById('in_discount').value,
-      carriedForward: document.getElementById('in_carriedForward').value,
-      customerPaid: document.getElementById('in_paid').value
-    };
+  const payload = {
+    type: "invoice",
+    invoiceNo: document.getElementById('in_invNo').value,
+    date: document.getElementById('in_date').value,
+    compDetails: "NeeD CARS – 9731055500",
+    compGst: document.getElementById('in_compGst').value,
+    customerName: document.getElementById('in_name').value,
+    customerNumber: document.getElementById('in_contact').value,
+    vehicleNameNumber: document.getElementById('in_vehicle').value,
+    rentalType: document.getElementById('in_rentalType').value,
+    openKm: openKm,
+    closeKm: closeKm,
+    useKm: useKm,
+    allowKm: allowKm,
+    extraKm: extraKm,
+    extraKmRate: document.getElementById('in_extraKmRate').value,
+    openFastag: openFastag,
+    closeFastag: closeFastag,
+    useFastag: useFastag,
+    days: document.getElementById('in_days').value,
+    rate: document.getElementById('in_rate').value,
+    rentAmt: (parseFloat(document.getElementById('in_days').value) || 0) * (parseFloat(document.getElementById('in_rate').value) || 0),
+    extraDays: document.getElementById('in_extraDays').value,
+    extraDayRate: document.getElementById('in_extraDayRate').value,
+    extraDaysAmt: (parseFloat(document.getElementById('in_extraDays').value) || 0) * (parseFloat(document.getElementById('in_extraDayRate').value) || 0),
+    fuel: document.getElementById('in_fuel').value,
+    pickupDrop: document.getElementById('in_pickupDrop').value,
+    washing: document.getElementById('in_washing').value,
+    challan: document.getElementById('in_challan').value,
+    damageDetails: document.getElementById('in_damageDetails').value,
+    damageAmt: document.getElementById('in_damage').value,
+    gstRate: document.getElementById('in_gstRate').value,
+    discount: document.getElementById('in_discount').value,
+    carriedForward: document.getElementById('in_carriedForward').value,
+    customerPaid: document.getElementById('in_paid').value
+  };
 
-    fetch(SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    }).then(() => {
-      alert("Invoice recorded to Google Sheets database successfully!");
-    }).catch(err => {
-      alert("Error saving: " + err);
-    });
-  }
+  const customerName = document.getElementById('in_name').value.trim() || "Customer";
+  document.title = `NeeD - ${customerName}`;
+
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
+    if (btn) {
+      btn.innerText = originalText;
+      btn.disabled = false;
+    }
+    window.print();
+  })
+  .catch(err => {
+    if (btn) {
+      btn.innerText = originalText;
+      btn.disabled = false;
+    }
+    window.print();
+  });
+}
 window.addEventListener('DOMContentLoaded', () => {
   const today = new Date().toISOString().split('T')[0];
   const dateInput = document.getElementById('in_date');
