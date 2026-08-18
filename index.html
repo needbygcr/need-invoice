@@ -131,12 +131,12 @@
     <div class="section-label">1. Basic Invoice, Customer & Vehicle Meta</div>
     <div class="grid-4">
       <div class="form-group"><label>Invoice No</label><input type="text" id="in_invNo" value="NeeD-2026-0729-v3" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Customer Name</label><input type="text" id="in_name" value="Ishan Singh" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Customer Name</label><input type="text" id="in_name" value="" oninput="updatePreview()"></div>
    <div class="form-group"><label>Date of Issue</label><input type="text" id="in_date" value="" readonly style="background-color: #e2e8f0; color: #64748b; border: 1px solid #cbd5e1; cursor: not-allowed; pointer-events: none;" oninput="updatePreview()"></div>
       <div class="form-group"><label>Vehicle Assigned</label><input type="text" id="in_vehicle" value="Mahindra XUV7XO" oninput="updatePreview()"></div>
     </div>
     <div class="grid-3">
-      <div class="form-group"><label>Customer Contact</label><input type="tel" id="in_contact" value="9876543210" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Customer Contact</label><input type="tel" id="in_contact" value="" oninput="updatePreview()"></div>
       <div class="form-group"><label>Company GSTIN</label><input type="text" id="in_compGst" value="29AAKCG5719K1Z1" readonly style="background-color: #e2e8f0; color: #64748b; border: 1px solid #cbd5e1; cursor: not-allowed;" oninput="updatePreview()"></div>
       <div class="form-group"><label>Rental Type</label>
         <select id="in_rentalType" onchange="updatePreview()">
@@ -208,7 +208,7 @@
             </div>
           </div>
           <div class="brand-contact-bar">
-            <div>📞 9731055500 &nbsp;|&nbsp; GSTIN: <strong id="out_compGst">07AAAAA0000A1Z5</strong></div>
+            <div>📞 9731055500 &nbsp;|&nbsp; GSTIN: <strong id="out_compGst">29AAKCG5719K1Z1</strong></div>
             <div>📸 needcarsbygcr</div>
           </div>
         </div>
@@ -220,8 +220,8 @@
           <div class="meta-grid">
             <div class="meta-card">
               <div class="meta-card-title">Billed To</div>
-              <div><strong>Customer Name:</strong> <span id="out_name">Jitendra Kumar</span></div>
-              <div><strong>Contact:</strong> <span id="out_contact">9876543210</span></div>
+              <div><strong>Customer Name:</strong> <span id="out_name">—</span></div>
+              <div><strong>Contact:</strong> <span id="out_contact"></span></div>
               <div><strong>Billing Status:</strong> <span id="out_billingStatusBadge" style="color: #d97706; font-weight: 700;">Balance Due</span></div>
             </div>
             <div class="meta-card">
