@@ -130,10 +130,10 @@
     
     <div class="section-label">1. Basic Invoice, Customer & Vehicle Meta</div>
     <div class="grid-4">
-      <div class="form-group"><label>Invoice No</label><input type="text" id="in_invNo" value="NeeD-2026-0729-v3" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Invoice No</label><input type="text" id="in_invNo" value="" oninput="updatePreview()"></div>
       <div class="form-group"><label>Customer Name</label><input type="text" id="in_name" value="" oninput="updatePreview()"></div>
    <div class="form-group"><label>Date of Issue</label><input type="text" id="in_date" value="" readonly style="background-color: #e2e8f0; color: #64748b; border: 1px solid #cbd5e1; cursor: not-allowed; pointer-events: none;" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Vehicle Assigned</label><input type="text" id="in_vehicle" value="Mahindra XUV7XO" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Vehicle Assigned</label><input type="text" id="in_vehicle" value="" oninput="updatePreview()"></div>
     </div>
     <div class="grid-3">
       <div class="form-group"><label>Customer Contact</label><input type="tel" id="in_contact" value="" oninput="updatePreview()"></div>
@@ -152,15 +152,15 @@
     <div class="section-label">2. Odometer Readings & Package</div>
     <div class="grid-4">
       <div class="form-group"><label>Days</label><input type="number" id="in_days" value="7" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Daily Rate (₹)</label><input type="number" id="in_rate" value="8000" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Opening KM</label><input type="number" id="in_openKm" value="18162" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Closing KM</label><input type="number" id="in_closeKm" value="20174" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Daily Rate (₹)</label><input type="number" id="in_rate" value="0" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Opening KM</label><input type="number" id="in_openKm" value="0" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Closing KM</label><input type="number" id="in_closeKm" value="O" oninput="updatePreview()"></div>
     </div>
     <div class="grid-4">
-      <div class="form-group"><label>Allowed Base KM</label><input type="number" id="in_allowKm" value="1750" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Extra KM Rate (₹/KM)</label><input type="number" id="in_extraKmRate" value="20" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Allowed Base KM</label><input type="number" id="in_allowKm" value="" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Extra KM Rate (₹/KM)</label><input type="number" id="in_extraKmRate" value="0" oninput="updatePreview()"></div>
       <div class="form-group"><label>Extra Days</label><input type="number" id="in_extraDays" value="0" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Extra Day Rate (₹/day)</label><input type="number" id="in_extraDayRate" value="8000" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Extra Day Rate (₹/day)</label><input type="number" id="in_extraDayRate" value="0" oninput="updatePreview()"></div>
     </div>
 
     <div class="section-label">3. FASTag, Fuel & Incidentals</div>
@@ -204,7 +204,7 @@
             
             <div class="inv-meta-right">
               <div class="inv-title">INVOICE</div>
-              <div class="inv-no">#<span id="out_invNo">NeeD-2026-0729-v3</span></div>
+              <div class="inv-no">#<span id="out_invNo"></span></div>
             </div>
           </div>
           <div class="brand-contact-bar">
@@ -226,8 +226,8 @@
             </div>
             <div class="meta-card">
               <div class="meta-card-title">Invoice Details</div>
-              <div><strong>Date of Issue:</strong> <span id="out_date">29 July 2026</span></div>
-              <div><strong>Vehicle Assigned:</strong> <span id="out_vehicle">Mahindra XUV7XO</span></div>
+              <div><strong>Date of Issue:</strong> <span id="out_date"></span></div>
+              <div><strong>Vehicle Assigned:</strong> <span id="out_vehicle"></span></div>
               <div><strong>Rental Type:</strong> <span id="out_rentalType">Outstation / Multi-Day</span></div>
             </div>
           </div>
@@ -235,15 +235,15 @@
           <div class="odo-strip">
             <div class="odo-col">
               <div class="odo-label">Opening Reading</div>
-              <div class="odo-val"><span id="out_openKm">18,162</span> KM</div>
+              <div class="odo-val"><span id="out_openKm">O</span> KM</div>
             </div>
             <div class="odo-col">
               <div class="odo-label">Closing Reading</div>
-              <div class="odo-val"><span id="out_closeKm">20,174</span> KM</div>
+              <div class="odo-val"><span id="out_closeKm">0</span> KM</div>
             </div>
             <div class="odo-col">
               <div class="odo-label">Total Distance</div>
-              <div class="odo-val"><span id="out_totalKm">2,012</span> KM</div>
+              <div class="odo-val"><span id="out_totalKm">0</span> KM</div>
             </div>
             <div class="odo-col">
               <div class="odo-label">Rental Duration</div>
