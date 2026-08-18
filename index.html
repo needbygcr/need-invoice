@@ -179,7 +179,7 @@
 
     <div class="section-label">4. Tax, Discounts, Carried Forward & Settlement</div>
     <div class="grid-4">
-      <div class="form-group"><label>GST (%)</label><input type="number" id="in_gstRate" value="0" oninput="updatePreview()"></div>
+     <div class="form-group"><label>GST (%)</label><input type="number" id="in_gstRate" value="5" readonly style="background-color: #e2e8f0; color: #64748b; border: 1px solid #cbd5e1; cursor: not-allowed;" oninput="updatePreview()"></div>
       <div class="form-group"><label>Discount (₹)</label><input type="number" id="in_discount" value="0" oninput="updatePreview()"></div>
       <div class="form-group"><label>Carried Forward (₹)</label><input type="number" id="in_carriedForward" value="3500" oninput="updatePreview()"></div>
       <div class="form-group"><label>Amount Paid (₹)</label><input type="number" id="in_paid" value="50000" oninput="updatePreview()"></div>
@@ -402,7 +402,7 @@
                   <td class="text-right" id="out_subtotal">₹62,240.00</td>
                 </tr>
                 <tr id="row_gstSummary" style="display: none;">
-                  <td>GST (<span id="out_gstPct">18%</span>):</td>
+                  <td>GST (<span id="out_gstPct">5%</span>):</td>
                   <td class="text-right" id="out_gstAmt">+ ₹0.00</td>
                 </tr>
                 <tr id="row_discountSummary" style="display: none; color: #16a34a;">
@@ -580,18 +580,16 @@
 
     const subtotal = packageAmt + extraKmAmt + extraDaysAmt + useFastag + pickupDrop + washing + challan + fuel + damage;
 
-    const gstRate = parseFloat(document.getElementById('in_gstRate').value) || 0;
-    const gstAmt = (subtotal * gstRate) / 100;
-    const discount = parseFloat(document.getElementById('in_discount').value) || 0;
+   const gstRate = 5;
+  const gstAmt = (subtotal * gstRate) / 100;
+  const discount = parseFloat(document.getElementById('in_discount').value) || 0;
 
-    const rowGst = document.getElementById('row_gstSummary');
-    if (gstRate > 0) {
-      rowGst.style.display = '';
-      document.getElementById('out_gstPct').innerText = gstRate + '%';
-      document.getElementById('out_gstAmt').innerText = '+ ₹' + gstAmt.toLocaleString('en-IN', {minimumFractionDigits: 2});
-    } else {
-      rowGst.style.display = 'none';
-    }
+  const rowGst = document.getElementById('row_gstSummary');
+  if (rowGst) {
+    rowGst.style.display = '';
+    document.getElementById('out_gstPct').innerText = '5%';
+    document.getElementById('out_gstAmt').innerText = '+ ₹' + gstAmt.toLocaleString('en-IN', {minimumFractionDigits: 2});
+  }
 
     const rowDisc = document.getElementById('row_discountSummary');
     if (discount > 0) {
