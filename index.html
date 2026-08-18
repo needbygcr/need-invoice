@@ -182,7 +182,7 @@
      <div class="form-group"><label>GST (%)</label><input type="number" id="in_gstRate" value="5" readonly style="background-color: #e2e8f0; color: #64748b; border: 1px solid #cbd5e1; cursor: not-allowed;" oninput="updatePreview()"></div>
       <div class="form-group"><label>Discount (₹)</label><input type="number" id="in_discount" value="0" oninput="updatePreview()"></div>
       <div class="form-group"><label>Booking Advance / Token Paid (₹)</label><input type="number" id="in_carriedForward" value="0" placeholder="0" oninput="updatePreview()"></div>
-      <div class="form-group"><label>Amount Paid (₹)</label><input type="number" id="in_paid" value="50000" oninput="updatePreview()"></div>
+      <div class="form-group"><label>Amount Paid (₹)</label><input type="number" id="in_paid" value="" oninput="updatePreview()"></div>
     </div>
 
     <div class="actions">
@@ -268,9 +268,9 @@
                 <td class="text-center">1</td>
                 <td>
                   <div class="item-title">Vehicle Rental Charges</div>
-                  <div class="item-sub" id="out_vehicleSub">Mahindra XUV7XO — Tariff for 7 Days</div>
+                  <div class="item-sub" id="out_vehicleSub"> — Tariff for  Days</div>
                 </td>
-                <td class="text-center" id="out_packageUnits">7 Days</td>
+                <td class="text-center" id="out_packageUnits"> Days</td>
                 <td class="text-right" id="out_packageRate"></td>
                 <td class="text-right font-bold" id="out_packageAmt"></td>
               </tr>
@@ -280,9 +280,9 @@
                 <td class="text-center">2</td>
                 <td>
                   <div class="item-title">Extra Kilometers Charge</div>
-                  <div class="item-sub" id="out_extraKmSub">262 km beyond base allowance</div>
+                  <div class="item-sub" id="out_extraKmSub"> km beyond base allowance</div>
                 </td>
-                <td class="text-center" id="out_extraKmUnits">262 KM</td>
+                <td class="text-center" id="out_extraKmUnits"></td>
                 <td class="text-right" id="out_extraKmRate"></td>
                 <td class="text-right font-bold" id="out_extraKmAmt"></td>
               </tr>
@@ -390,7 +390,7 @@
               <table class="totals-table">
                 <tr>
                   <td>Subtotal:</td>
-                  <td class="text-right" id="out_subtotal">₹62,240.00</td>
+                  <td class="text-right" id="out_subtotal">₹</td>
                 </tr>
                 <tr id="row_gstSummary" style="display: none;">
                   <td>GST (<span id="out_gstPct">5%</span>):</td>
