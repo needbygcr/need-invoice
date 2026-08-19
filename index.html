@@ -570,18 +570,61 @@ function updatePreview() {
   setText('out_extraKmRate', extraKmRate.toLocaleString('en-IN', {minimumFractionDigits: 2}));
   setText('out_extraKmAmt', extraKmAmt.toLocaleString('en-IN', {minimumFractionDigits: 2}));
 
+  // Extra Days Row (Row 3)
+  const rowExtraDays = document.getElementById('row_extraDays');
+  if (rowExtraDays) {
+    rowExtraDays.style.display = extraDays > 0 ? '' : 'none';
+  }
   setText('out_extraDaysQty', extraDays + ' Days');
   setText('out_extraDayRate', extraDayRate.toLocaleString('en-IN', {minimumFractionDigits: 2}));
   setText('out_extraDaysAmt', extraDaysAmt.toLocaleString('en-IN', {minimumFractionDigits: 2}));
 
+  // FASTag Row (Row 4)
+  const rowFastag = document.getElementById('row_fastag');
+  if (rowFastag) {
+    rowFastag.style.display = useFastag > 0 ? '' : 'none';
+  }
   setText('out_fastagRate', useFastag.toLocaleString('en-IN', {minimumFractionDigits: 2}));
   setText('out_fastagAmt', useFastag.toLocaleString('en-IN', {minimumFractionDigits: 2}));
 
+  // Pickup & Drop Row (Row 5)
+  const rowPickupDrop = document.getElementById('row_pickupDrop');
+  if (rowPickupDrop) {
+    rowPickupDrop.style.display = pickupDrop > 0 ? '' : 'none';
+  }
+  setText('out_pickupDropRate', pickupDrop.toLocaleString('en-IN', {minimumFractionDigits: 2}));
   setText('out_pickupDropAmt', pickupDrop.toLocaleString('en-IN', {minimumFractionDigits: 2}));
+
+  // Fuel Row
+  const rowFuel = document.getElementById('row_fuel');
+  if (rowFuel) {
+    rowFuel.style.display = fuel > 0 ? '' : 'none';
+  }
   setText('out_fuelAmt', fuel.toLocaleString('en-IN', {minimumFractionDigits: 2}));
+
+  // Washing Row (Row 6)
+  const rowWashing = document.getElementById('row_washing');
+  if (rowWashing) {
+    rowWashing.style.display = washing > 0 ? '' : 'none';
+  }
+  setText('out_washingRate', washing.toLocaleString('en-IN', {minimumFractionDigits: 2}));
   setText('out_washingAmt', washing.toLocaleString('en-IN', {minimumFractionDigits: 2}));
+
+  // Challan Row (Row 7)
+  const rowChallan = document.getElementById('row_challan');
+  if (rowChallan) {
+    rowChallan.style.display = challan > 0 ? '' : 'none';
+  }
+  setText('out_challanRate', challan.toLocaleString('en-IN', {minimumFractionDigits: 2}));
   setText('out_challanAmt', challan.toLocaleString('en-IN', {minimumFractionDigits: 2}));
+
+  // Damage Row (Row 9)
+  const rowDamage = document.getElementById('row_damage');
+  if (rowDamage) {
+    rowDamage.style.display = damage > 0 ? '' : 'none';
+  }
   setText('out_damageSub', damageDetails);
+  setText('out_damageRate', damage.toLocaleString('en-IN', {minimumFractionDigits: 2}));
   setText('out_damageAmt', damage.toLocaleString('en-IN', {minimumFractionDigits: 2}));
 
  // --- CALCULATE TOTALS ---
