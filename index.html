@@ -479,31 +479,37 @@ function setFormattedAmt(id, num, prefix = "₹") {
   }
 }
 
-// --- 1. SERIAL INVOICE NUMBER GENERATOR (NeeD-DDMMYY-001) ---
-function getNextInvoiceNumber(increment = false) {
+// --- 1. CLOUD SYNCHRONIZED INVOICE NUMBER GENERATOR (Starts at 000) ---
+function getDateCode() {
   const now = new Date();
   const d = String(new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit' }).format(now));
   const m = String(new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', month: '2-digit' }).format(now));
   const y = String(new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', year: '2-digit' }).format(now));
-  
-  const dateCode = `${d}${m}${y}`;
-  const savedDate = localStorage.getItem('need_inv_date');
-  let count = parseInt(localStorage.getItem('need_inv_seq') || "0", 10);
+  return `${d}${m}${y}`;
+}
 
-  if (savedDate !== dateCode) {
-    count = 1;
-    localStorage.setItem('need_inv_date', dateCode);
-    localStorage.setItem('need_inv_seq', "1");
-  } else if (increment) {
-    count += 1;
-    localStorage.setItem('need_inv_seq', count.toString());
-  } else if (count === 0) {
-    count = 1;
-    localStorage.setItem('need_inv_seq', "1");
+async function syncGlobalInvoiceNumber() {
+  const invInput = document.getElementById('in_invNo');
+  const dateCode = getDateCode();
+
+  // Instant fallback starting at 000
+  if (invInput && !invInput.value) {
+    invInput.value = `NeeD-${dateCode}-000`;
+    setText('out_invNo', invInput.value);
   }
 
-  const seqStr = String(count).padStart(3, '0');
-  return `NeeD-${dateCode}-${seqStr}`;
+  try {
+    const res = await fetch(SCRIPT_URL);
+    const data = await res.json();
+    const count = data.nextSeq !== undefined ? Number(data.nextSeq) : 0;
+    const seqStr = String(count).padStart(3, '0');
+    const cloudInvNo = `NeeD-${dateCode}-${seqStr}`;
+
+    if (invInput) invInput.value = cloudInvNo;
+    setText('out_invNo', cloudInvNo);
+  } catch (err) {
+    console.warn("Using offline invoice counter fallback:", err);
+  }
 }
 
 // --- 2. LIVE PREVIEW UPDATE ---
@@ -784,12 +790,7 @@ function saveAndDownloadPDF() {
 }
 
 // --- 4. DOM CONTENT LOADED INITIALIZER ---
-window.addEventListener('DOMContentLoaded', () => {
-  const invInput = document.getElementById('in_invNo');
-  if (invInput) {
-    invInput.value = getNextInvoiceNumber(false);
-  }
-
+window.addEventListener('DOMContentLoaded', async () => {
   const todayIST = new Intl.DateTimeFormat('en-IN', {
     timeZone: 'Asia/Kolkata',
     day: '2-digit',
@@ -802,7 +803,10 @@ window.addEventListener('DOMContentLoaded', () => {
     dateInput.value = todayIST;
   }
 
+  updatePreview();
 
+  // Fetch cross-device counter from Google Sheets
+  await syncGlobalInvoiceNumber();
   updatePreview();
 });
 </script>
