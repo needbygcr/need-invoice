@@ -451,7 +451,7 @@
 </div>
 
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4QyXRbX2F2HRqb404-sfJWiMLTvJTTkXEwxSPCInBVpInIdAvUOCfqyFAbfDcJflu6g/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyN6DV0E4VwMPvlxmJn9gpnyT8YX-WzoaA5qT6QheQs4T6HAcTREdi_4HghzeKAmrAaog/exec";
 
   // --- HELPER FUNCTIONS ---
 function getNum(id) {
@@ -479,7 +479,7 @@ function setFormattedAmt(id, num, prefix = "₹") {
   }
 }
 
-// --- 1. CLOUD SYNCHRONIZED DAILY INVOICE NUMBER GENERATOR ---
+// --- 1. HYBRID CLOUD + LIVE COUNTER INVOICE NUMBER SYSTEM ---
 function getDateCode() {
   const now = new Date();
   const d = String(new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit' }).format(now));
@@ -488,29 +488,55 @@ function getDateCode() {
   return `${d}${m}${y}`;
 }
 
-let currentCloudCount = 0;
+let activeInvoiceCount = 0;
 
-async function syncGlobalInvoiceNumber() {
-  const invInput = document.getElementById('in_invNo');
+function setInvoiceDisplay(countNum) {
+  activeInvoiceCount = countNum;
   const dateCode = getDateCode();
+  const seqStr = String(countNum).padStart(3, '0');
+  const invNo = `NeeD-${dateCode}-${seqStr}`;
+  
+  const invInput = document.getElementById('in_invNo');
+  if (invInput) invInput.value = invNo;
+  setText('out_invNo', invNo);
 
-  try {
-    const res = await fetch(`${SCRIPT_URL}?action=getLatestCount`);
-    const data = await res.json();
-    currentCloudCount = (data.nextSeq !== undefined) ? Number(data.nextSeq) : 0;
-    
-    const seqStr = String(currentCloudCount).padStart(3, '0');
-    const cloudInvNo = `NeeD-${dateCode}-${seqStr}`;
+  localStorage.setItem('need_inv_date', dateCode);
+  localStorage.setItem('need_inv_seq', countNum.toString());
 
-    if (invInput) invInput.value = cloudInvNo;
-    setText('out_invNo', cloudInvNo);
-  } catch (err) {
-    if (invInput && !invInput.value) {
-      const seqStr = String(currentCloudCount).padStart(3, '0');
-      invInput.value = `NeeD-${dateCode}-${seqStr}`;
-      setText('out_invNo', invInput.value);
-    }
-  }
+  return invNo;
+}
+
+function fetchCloudCount() {
+  return new Promise((resolve) => {
+    const callbackName = 'sheetCallback_' + Math.floor(Math.random() * 1000000);
+    const dateCode = getDateCode();
+
+    window[callbackName] = function(data) {
+      if (data && data.nextSeq !== undefined) {
+        const cloudCount = Number(data.nextSeq);
+        setInvoiceDisplay(cloudCount);
+      }
+      delete window[callbackName];
+      const tag = document.getElementById(callbackName);
+      if (tag) tag.remove();
+      resolve();
+    };
+
+    const script = document.createElement('script');
+    script.id = callbackName;
+    script.src = `${SCRIPT_URL}?callback=${callbackName}`;
+    script.onerror = function() {
+      const savedDate = localStorage.getItem('need_inv_date');
+      let localCount = 0;
+      if (savedDate === dateCode && localStorage.getItem('need_inv_seq') !== null) {
+        localCount = parseInt(localStorage.getItem('need_inv_seq'), 10);
+      }
+      setInvoiceDisplay(localCount);
+      delete window[callbackName];
+      resolve();
+    };
+    document.body.appendChild(script);
+  });
 }
 // --- 2. LIVE PREVIEW UPDATE ---
 function updatePreview() {
@@ -782,12 +808,8 @@ async function saveAndDownloadPDF() {
       body: JSON.stringify(payload)
     });
 
-    // Screen par invoice counter ko turant +1 increment karein
-    currentCloudCount += 1;
-    const nextInvNo = `NeeD-${dateCode}-${String(currentCloudCount).padStart(3, '0')}`;
-    const invInput = document.getElementById('in_invNo');
-    if (invInput) invInput.value = nextInvNo;
-    setText('out_invNo', nextInvNo);
+    // 1. स्क्रीन और लोकल स्टोरेज में नंबर को +1 बढ़ाओ (कोई रीसेट नहीं)
+  setInvoiceDisplay(activeInvoiceCount + 1);
 
   } catch (err) {
     console.error("Save error:", err);
@@ -797,7 +819,6 @@ async function saveAndDownloadPDF() {
       btn.disabled = false;
     }
     window.print();
-    setTimeout(syncGlobalInvoiceNumber, 2000);
   }
 }
 
@@ -816,11 +837,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   updatePreview();
-
-  // Fetch cross-device counter from Google Sheets
-  await syncGlobalInvoiceNumber();
+  await fetchCloudCount();
   updatePreview();
 });
 </script>
 </body>
 </html>
+
