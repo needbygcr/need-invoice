@@ -755,46 +755,72 @@ async function saveAndDownloadPDF() {
   }
 
   try {
-    const dateCode = getDateCode();
-    let currentInvNo = document.getElementById('in_invNo')?.value;
-    if (!currentInvNo || currentInvNo === "—") {
-      currentInvNo = `NeeD-${dateCode}-${String(currentCloudCount).padStart(3, '0')}`;
-      const invInput = document.getElementById('in_invNo');
-      if (invInput) invInput.value = currentInvNo;
-    }
+      let currentInvNo = document.getElementById('in_invNo')?.value;
+      if (!currentInvNo || currentInvNo === "—") {
+        currentInvNo = setInvoiceDisplay(activeInvoiceCount);
+      }
 
     updatePreview();
+    const days = getNum('in_days');
+    const rate = getNum('in_rate');
+    const rentAmt = days * rate;
+
+    const openKm = getNum('in_openKm');
+    const closeKm = getNum('in_closeKm');
+    const usedKm = Math.max(0, closeKm - openKm);
+    const allowKm = getNum('in_allowKm');
+    const extraKm = Math.max(0, usedKm - allowKm);
+    const extraKmRate = getNum('in_extraKmRate');
+    const extraKmAmt = extraKm * extraKmRate;
+
+    const extraDays = getNum('in_extraDays');
+    const extraDayRate = getNum('in_extraDayRate');
+    const extraDaysAmt = extraDays * extraDayRate;
+
+    const openFastag = getNum('in_openFastag');
+    const closeFastag = getNum('in_closeFastag');
+    const usedFastag = Math.max(0, openFastag - closeFastag);
+
+    const pickupDrop = getNum('in_pickupDrop');
+    const fuel = getNum('in_fuel');
+    const washing = getNum('in_washing');
+    const challan = getNum('in_challan');
+    const damageAmt = getNum('in_damage');
+    const damageDetails = document.getElementById('in_damageDetails')?.value || "None";
+
+    const subtotal = rentAmt + extraKmAmt + extraDaysAmt + usedFastag + pickupDrop + fuel + washing + challan + damageAmt;
+    const gstRate = getNum('in_gstRate');
+    const gstAmt = (subtotal * gstRate) / 100;
+
+    const discountPct = getNum('in_discount');
+    const discountAmt = (subtotal * discountPct) / 100;
+    const discountStr = discountPct > 0 ? (discountPct + "%") : "0%";
+
+    const grossTotal = Math.max(0, subtotal + gstAmt - discountAmt);
+    const bookingAdvance = getNum('in_carriedForward');
+    const customerPaid = getNum('in_paid');
+    const totalPaid = bookingAdvance + customerPaid;
+    const balanceDue = grossTotal - totalPaid;
+
+    let status = "PAID";
+    if (balanceDue > 0) status = "BALANCE DUE: ₹" + balanceDue.toFixed(2);
+    else if (balanceDue < 0) status = "REFUND TO CUSTOMER: ₹" + Math.abs(balanceDue).toFixed(2);
 
     const payload = {
-      type: "invoice",
       invoiceNo: currentInvNo,
       date: document.getElementById('in_date')?.value || "",
-      compDetails: "NeeD CARS – 9731055500",
       compGst: document.getElementById('in_compGst')?.value || "29AAKCG5719K1Z1",
       customerName: document.getElementById('in_name')?.value || "-",
       customerNumber: document.getElementById('in_contact')?.value || "-",
       vehicleNameNumber: document.getElementById('in_vehicle')?.value || "-",
       rentalType: document.getElementById('in_rentalType')?.value || "Outstation / Multi-Day",
-      days: getNum('in_days'),
-      rate: getNum('in_rate'),
-      openKm: getNum('in_openKm'),
-      closeKm: getNum('in_closeKm'),
-      allowKm: getNum('in_allowKm'),
-      extraKmRate: getNum('in_extraKmRate'),
-      openFastag: getNum('in_openFastag'),
-      closeFastag: getNum('in_closeFastag'),
-      extraDays: getNum('in_extraDays'),
-      extraDayRate: getNum('in_extraDayRate'),
-      pickupDrop: getNum('in_pickupDrop'),
-      fuel: getNum('in_fuel'),
-      washing: getNum('in_washing'),
-      challan: getNum('in_challan'),
-      damageDetails: document.getElementById('in_damageDetails')?.value || "None",
-      damageAmt: getNum('in_damage'),
-      gstRate: getNum('in_gstRate'),
-      discount: getNum('in_discount'),
-      bookingAdvance: getNum('in_carriedForward'),
-      customerPaid: getNum('in_paid')
+      openKm, closeKm, usedKm, allowKm, extraKm, extraKmRate, extraKmAmt,
+      openFastag, closeFastag, usedFastag,
+      days, rate, rentAmt,
+      extraDays, extraDayRate, extraDaysAmt,
+      pickupDrop, fuel, washing, challan, damageDetails, damageAmt,
+      subtotal, gstRate, gstAmt, discountStr,
+      bookingAdvance, grossTotal, customerPaid, balanceDue, status
     };
 
     const customerName = document.getElementById('in_name')?.value.trim() || "Customer";
