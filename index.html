@@ -718,75 +718,82 @@ function updatePreview() {
  
  
 
-// --- 3. SAVE & DOWNLOAD HANDLER (WITH SCRIPT_URL INTEGRATION) ---
-function saveAndDownloadPDF() {
-  const newInvNo = getNextInvoiceNumber(true);
-  const invInput = document.getElementById('in_invNo');
-  if (invInput) invInput.value = newInvNo;
-  updatePreview();
-
+// --- 3. SAVE & DOWNLOAD HANDLER ---
+async function saveAndDownloadPDF() {
   const btn = document.querySelector('.btn-save');
-  const originalText = btn ? btn.innerText : "";
+  const originalText = btn ? btn.innerText : "📥 Download";
+  
   if (btn) {
     btn.innerText = "⏳ Processing...";
     btn.disabled = true;
   }
 
-  const payload = {
-    type: "invoice",
-    invoiceNo: newInvNo,
-    date: document.getElementById('in_date')?.value,
-    compDetails: "NeeD CARS – 9731055500",
-    compGst: document.getElementById('in_compGst')?.value,
-    customerName: document.getElementById('in_name')?.value,
-    customerNumber: document.getElementById('in_contact')?.value,
-    vehicleNameNumber: document.getElementById('in_vehicle')?.value,
-    rentalType: document.getElementById('in_rentalType')?.value,
-    days: getNum('in_days'),
-    rate: getNum('in_rate'),
-    openKm: getNum('in_openKm'),
-    closeKm: getNum('in_closeKm'),
-    allowKm: getNum('in_allowKm'),
-    extraKmRate: getNum('in_extraKmRate'),
-    openFastag: getNum('in_openFastag'),
-    closeFastag: getNum('in_closeFastag'),
-    extraDays: getNum('in_extraDays'),
-    extraDayRate: getNum('in_extraDayRate'),
-    pickupDrop: getNum('in_pickupDrop'),
-    fuel: getNum('in_fuel'),
-    washing: getNum('in_washing'),
-    challan: getNum('in_challan'),
-    damageDetails: document.getElementById('in_damageDetails')?.value,
-    damageAmt: getNum('in_damage'),
-    gstRate: getNum('in_gstRate'),
-    discount: getNum('in_discount'),
-    bookingAdvance: getNum('in_carriedForward'),
-    customerPaid: getNum('in_paid')
-  };
+  try {
+    // 1. Read current invoice number directly from the field
+    let currentInvNo = document.getElementById('in_invNo')?.value || "";
+    if (!currentInvNo || currentInvNo === "—") {
+      const dateCode = getDateCode();
+      currentInvNo = `NeeD-${dateCode}-000`;
+      const invInput = document.getElementById('in_invNo');
+      if (invInput) invInput.value = currentInvNo;
+    }
 
-  const customerName = document.getElementById('in_name')?.value.trim() || "Customer";
-  document.title = `${newInvNo} - ${customerName}`;
+    updatePreview();
 
-  fetch(SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  })
-  .then(() => {
+    // 2. Prepare payload
+    const payload = {
+      type: "invoice",
+      invoiceNo: currentInvNo,
+      date: document.getElementById('in_date')?.value || "",
+      compDetails: "NeeD CARS – 9731055500",
+      compGst: document.getElementById('in_compGst')?.value || "29AAKCG5719K1Z1",
+      customerName: document.getElementById('in_name')?.value || "-",
+      customerNumber: document.getElementById('in_contact')?.value || "-",
+      vehicleNameNumber: document.getElementById('in_vehicle')?.value || "-",
+      rentalType: document.getElementById('in_rentalType')?.value || "Outstation / Multi-Day",
+      days: getNum('in_days'),
+      rate: getNum('in_rate'),
+      openKm: getNum('in_openKm'),
+      closeKm: getNum('in_closeKm'),
+      allowKm: getNum('in_allowKm'),
+      extraKmRate: getNum('in_extraKmRate'),
+      openFastag: getNum('in_openFastag'),
+      closeFastag: getNum('in_closeFastag'),
+      extraDays: getNum('in_extraDays'),
+      extraDayRate: getNum('in_extraDayRate'),
+      pickupDrop: getNum('in_pickupDrop'),
+      fuel: getNum('in_fuel'),
+      washing: getNum('in_washing'),
+      challan: getNum('in_challan'),
+      damageDetails: document.getElementById('in_damageDetails')?.value || "None",
+      damageAmt: getNum('in_damage'),
+      gstRate: getNum('in_gstRate'),
+      discount: getNum('in_discount'),
+      bookingAdvance: getNum('in_carriedForward'),
+      customerPaid: getNum('in_paid')
+    };
+
+    const customerName = document.getElementById('in_name')?.value.trim() || "Customer";
+    document.title = `${currentInvNo} - ${customerName}`;
+
+    // 3. Post data asynchronously to Google Sheets
+    fetch(SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).catch(err => console.warn("Sync error:", err));
+
+  } catch (err) {
+    console.error("Download Error:", err);
+  } finally {
+    // 4. Reset button and trigger PDF / Print dialog
     if (btn) {
       btn.innerText = originalText;
       btn.disabled = false;
     }
     window.print();
-  })
-  .catch(() => {
-    if (btn) {
-      btn.innerText = originalText;
-      btn.disabled = false;
-    }
-    window.print();
-  });
+  }
 }
 
 // --- 4. DOM CONTENT LOADED INITIALIZER ---
