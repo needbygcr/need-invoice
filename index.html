@@ -566,11 +566,17 @@ function updatePreview() {
   setText('out_rentalQty', days + ' Days');
   setText('out_rentalRate', rate.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
   setText('out_rentalAmt', rentAmt.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
-  setText('out_extraKmQty', extraKm + ' KM');
+  // Row 2: Extra Kilometers Charge
+  const rowExtraKm = document.getElementById('row_extraKm');
+  if (rowExtraKm) {
+    rowExtraKm.style.display = extraKm > 0 ? '' : 'none';
+  }
+  setText('out_extraKmSub', `${extraKm.toLocaleString('en-IN')} km beyond base allowance`);
+  setText('out_extraKmQty', extraKm.toLocaleString('en-IN') + ' KM');
   setText('out_extraKmRate', extraKmRate.toLocaleString('en-IN', {minimumFractionDigits: 2}));
   setText('out_extraKmAmt', extraKmAmt.toLocaleString('en-IN', {minimumFractionDigits: 2}));
 
-  // Extra Days Row (Row 3)
+  // Row 3: Extra Days / Extension Charge
   const rowExtraDays = document.getElementById('row_extraDays');
   if (rowExtraDays) {
     rowExtraDays.style.display = extraDays > 0 ? '' : 'none';
@@ -578,7 +584,6 @@ function updatePreview() {
   setText('out_extraDaysQty', extraDays + ' Days');
   setText('out_extraDayRate', extraDayRate.toLocaleString('en-IN', {minimumFractionDigits: 2}));
   setText('out_extraDaysAmt', extraDaysAmt.toLocaleString('en-IN', {minimumFractionDigits: 2}));
-
   // FASTag Row (Row 4)
   const rowFastag = document.getElementById('row_fastag');
   if (rowFastag) {
