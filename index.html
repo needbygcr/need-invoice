@@ -264,16 +264,16 @@
             </thead>
             <tbody id="invoiceTableBody">
               <!-- 1. Vehicle Rental Charges -->
-              <tr>
-                <td class="text-center">1</td>
-                <td>
-                  <div class="item-title">Vehicle Rental Charges</div>
-                  <div class="item-sub" id="out_vehicleSub"> — Tariff for  Days</div>
-                </td>
-                <td class="text-center" id="out_packageUnits"> Days</td>
-                <td class="text-right" id="out_packageRate"></td>
-                <td class="text-right font-bold" id="out_packageAmt"></td>
-              </tr>
+              <tr id="row_rentalCharges">
+  <td class="text-center">1</td>
+  <td>
+    <div class="item-title">Vehicle Rental Charges</div>
+    <div class="item-sub" id="out_rentalDesc">— Tariff for 0 Days</div>
+  </td>
+  <td class="text-center" id="out_rentalQty">0 Days</td>
+  <td class="text-right" id="out_rentalRate">0.00</td>
+  <td class="text-right font-bold" id="out_rentalAmt">0.00</td>
+</tr>
 
               <!-- 2. Extra Kilometers Charge -->
               <tr>
@@ -560,12 +560,12 @@ function updatePreview() {
   setText('out_totalKm', useKm.toLocaleString('en-IN') + ' KM');
   setText('out_rentalDays', days + ' Days');
 
-  // G. Items Table Values
-  setText('out_rentalDesc', `${vehicle} — Tariff for ${days} Days`);
-  setText('out_rentalDaysQty', days + ' Days');
-  setText('out_rentalRate', rate.toLocaleString('en-IN', {minimumFractionDigits: 2}));
-  setText('out_rentalAmt', rentAmt.toLocaleString('en-IN', {minimumFractionDigits: 2}));
-
+ // Update Row 1 (Vehicle Rental Charges)
+  const vehicleText = (vehicle && vehicle !== "—" && vehicle !== "-") ? vehicle : "Vehicle";
+  setText('out_rentalDesc', `${vehicleText} — Tariff for ${days} Days`);
+  setText('out_rentalQty', days + ' Days');
+  setText('out_rentalRate', rate.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+  setText('out_rentalAmt', rentAmt.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
   setText('out_extraKmQty', extraKm + ' KM');
   setText('out_extraKmRate', extraKmRate.toLocaleString('en-IN', {minimumFractionDigits: 2}));
   setText('out_extraKmAmt', extraKmAmt.toLocaleString('en-IN', {minimumFractionDigits: 2}));
@@ -601,26 +601,65 @@ function updatePreview() {
   const balanceDue = grossTotal - totalPaid;
 
   // --- RENDER TOTALS TO PREVIEW ---
-  const elSub = document.getElementById('out_subtotal');
-  if (elSub) elSub.innerText = '₹' + subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
+  setFormattedAmt('out_subtotal', subtotal, '₹');
 
   const rowGst = document.getElementById('row_gstSummary');
   if (rowGst) {
     rowGst.style.display = gstAmt > 0 ? '' : 'none';
-    const elGstPct = document.getElementById('out_gstPct');
-    if (elGstPct) elGstPct.innerText = gstRate + '%';
-    const elGstAmt = document.getElementById('out_gstAmt');
-    if (elGstAmt) elGstAmt.innerText = '+ ₹' + gstAmt.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    setText('out_gstPct', gstRate + '%');
+    setFormattedAmt('out_gstAmt', gstAmt, '+ ₹');
   }
 
   const rowDisc = document.getElementById('row_discountSummary');
   if (rowDisc) {
     rowDisc.style.display = discountAmt > 0 ? '' : 'none';
-    const elDiscPct = document.getElementById('out_discountPct');
-    if (elDiscPct) elDiscPct.innerText = discountPct + '%';
-    const elDiscAmt = document.getElementById('out_discountAmt');
-    if (elDiscAmt) elDiscAmt.innerText = '- ₹' + discountAmt.toLocaleString('en-IN', {minimumFractionDigits: 2});
+    setText('out_discountPct', discountPct + '%');
+    setFormattedAmt('out_discountAmt', discountAmt, '- ₹');
   }
+
+  const rowAdv = document.getElementById('row_carriedForward');
+  if (rowAdv) {
+    rowAdv.style.display = bookingAdvance > 0 ? '' : 'none';
+    setFormattedAmt('out_carriedForward', bookingAdvance, '- ₹');
+  }
+
+  setFormattedAmt('out_grossTotal', grossTotal, '₹');
+  setFormattedAmt('out_paid', amountPaid, '- ₹');
+
+  // --- RENDER BALANCE STRIP ---
+  const badgeStatus = document.getElementById('out_billingStatusBadge');
+  const balanceStrip = document.getElementById('out_balanceStrip');
+  const balanceLabel = document.getElementById('out_balanceLabel');
+  const balanceAmt = document.getElementById('out_balanceAmt');
+
+  if (balanceDue === 0 && grossTotal > 0) {
+    if (badgeStatus) { badgeStatus.innerText = "PAID"; badgeStatus.style.color = "#16a34a"; }
+    if (balanceStrip) { balanceStrip.style.background = "#dcfce7"; }
+    if (balanceLabel) { balanceLabel.innerText = "PAID IN FULL:"; balanceLabel.style.color = "#166534"; }
+    if (balanceAmt) { balanceAmt.innerText = "₹0.00"; balanceAmt.style.color = "#166534"; }
+  } else if (balanceDue > 0) {
+    if (badgeStatus) { badgeStatus.innerText = "Balance Due"; badgeStatus.style.color = "#d97706"; }
+    if (balanceStrip) { balanceStrip.style.background = "#fef2f2"; }
+    if (balanceLabel) { balanceLabel.innerText = "BALANCE DUE:"; balanceLabel.style.color = "#991b1b"; }
+    if (balanceAmt) {
+      setFormattedAmt('out_balanceAmt', balanceDue, '₹');
+      balanceAmt.style.color = "#dc2626";
+    }
+  } else if (balanceDue < 0) {
+    if (badgeStatus) { badgeStatus.innerText = "Refund Due"; badgeStatus.style.color = "#2563eb"; }
+    if (balanceStrip) { balanceStrip.style.background = "#eff6ff"; }
+    if (balanceLabel) { balanceLabel.innerText = "REFUND TO CUSTOMER:"; balanceLabel.style.color = "#1e40af"; }
+    if (balanceAmt) {
+      setFormattedAmt('out_balanceAmt', Math.abs(balanceDue), '₹');
+      balanceAmt.style.color = "#2563eb";
+    }
+  } else {
+    if (badgeStatus) { badgeStatus.innerText = "PAID"; badgeStatus.style.color = "#16a34a"; }
+    if (balanceStrip) { balanceStrip.style.background = "#dcfce7"; }
+    if (balanceLabel) { balanceLabel.innerText = "TOTAL DUE:"; balanceLabel.style.color = "#166534"; }
+    if (balanceAmt) { balanceAmt.innerText = "₹0.00"; balanceAmt.style.color = "#166534"; }
+  }
+}
 
   const rowAdv = document.getElementById('row_carriedForward');
   if (rowAdv) {
