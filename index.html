@@ -495,7 +495,7 @@ function setInvoiceDisplay(countNum) {
   const dateCode = getDateCode();
   const seqStr = String(countNum).padStart(3, '0');
   const invNo = `NeeD-${dateCode}-${seqStr}`;
-  
+
   const invInput = document.getElementById('in_invNo');
   if (invInput) invInput.value = invNo;
   setText('out_invNo', invNo);
