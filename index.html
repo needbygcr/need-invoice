@@ -479,7 +479,7 @@ function setFormattedAmt(id, num, prefix = "₹") {
   }
 }
 
-// --- 1. CLOUD SYNCHRONIZED INVOICE NUMBER GENERATOR (Starts at 000) ---
+// --- 1. CLOUD SYNCHRONIZED DAILY INVOICE NUMBER GENERATOR ---
 function getDateCode() {
   const now = new Date();
   const d = String(new Intl.DateTimeFormat('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit' }).format(now));
@@ -488,30 +488,30 @@ function getDateCode() {
   return `${d}${m}${y}`;
 }
 
+let currentCloudCount = 0;
+
 async function syncGlobalInvoiceNumber() {
   const invInput = document.getElementById('in_invNo');
   const dateCode = getDateCode();
 
-  // Instant fallback starting at 000
-  if (invInput && !invInput.value) {
-    invInput.value = `NeeD-${dateCode}-000`;
-    setText('out_invNo', invInput.value);
-  }
-
   try {
-    const res = await fetch(SCRIPT_URL);
+    const res = await fetch(`${SCRIPT_URL}?action=getLatestCount`);
     const data = await res.json();
-    const count = data.nextSeq !== undefined ? Number(data.nextSeq) : 0;
-    const seqStr = String(count).padStart(3, '0');
+    currentCloudCount = (data.nextSeq !== undefined) ? Number(data.nextSeq) : 0;
+    
+    const seqStr = String(currentCloudCount).padStart(3, '0');
     const cloudInvNo = `NeeD-${dateCode}-${seqStr}`;
 
     if (invInput) invInput.value = cloudInvNo;
     setText('out_invNo', cloudInvNo);
   } catch (err) {
-    console.warn("Using offline invoice counter fallback:", err);
+    if (invInput && !invInput.value) {
+      const seqStr = String(currentCloudCount).padStart(3, '0');
+      invInput.value = `NeeD-${dateCode}-${seqStr}`;
+      setText('out_invNo', invInput.value);
+    }
   }
 }
-
 // --- 2. LIVE PREVIEW UPDATE ---
 function updatePreview() {
   // A. Meta Info
@@ -729,18 +729,16 @@ async function saveAndDownloadPDF() {
   }
 
   try {
-    // 1. Read current invoice number directly from the field
-    let currentInvNo = document.getElementById('in_invNo')?.value || "";
+    const dateCode = getDateCode();
+    let currentInvNo = document.getElementById('in_invNo')?.value;
     if (!currentInvNo || currentInvNo === "—") {
-      const dateCode = getDateCode();
-      currentInvNo = `NeeD-${dateCode}-000`;
+      currentInvNo = `NeeD-${dateCode}-${String(currentCloudCount).padStart(3, '0')}`;
       const invInput = document.getElementById('in_invNo');
       if (invInput) invInput.value = currentInvNo;
     }
 
     updatePreview();
 
-    // 2. Prepare payload
     const payload = {
       type: "invoice",
       invoiceNo: currentInvNo,
@@ -776,23 +774,30 @@ async function saveAndDownloadPDF() {
     const customerName = document.getElementById('in_name')?.value.trim() || "Customer";
     document.title = `${currentInvNo} - ${customerName}`;
 
-    // 3. Post data asynchronously to Google Sheets
-    fetch(SCRIPT_URL, {
+    // Send payload to Google Sheets
+    await fetch(SCRIPT_URL, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
-    }).catch(err => console.warn("Sync error:", err));
+    });
+
+    // Screen par invoice counter ko turant +1 increment karein
+    currentCloudCount += 1;
+    const nextInvNo = `NeeD-${dateCode}-${String(currentCloudCount).padStart(3, '0')}`;
+    const invInput = document.getElementById('in_invNo');
+    if (invInput) invInput.value = nextInvNo;
+    setText('out_invNo', nextInvNo);
 
   } catch (err) {
-    console.error("Download Error:", err);
+    console.error("Save error:", err);
   } finally {
-    // 4. Reset button and trigger PDF / Print dialog
     if (btn) {
       btn.innerText = originalText;
       btn.disabled = false;
     }
     window.print();
+    setTimeout(syncGlobalInvoiceNumber, 2000);
   }
 }
 
