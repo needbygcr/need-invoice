@@ -276,28 +276,28 @@
 </tr>
 
               <!-- 2. Extra Kilometers Charge -->
-              <tr>
-                <td class="text-center">2</td>
-                <td>
-                  <div class="item-title">Extra Kilometers Charge</div>
-                  <div class="item-sub" id="out_extraKmSub"> km beyond base allowance</div>
-                </td>
-                <td class="text-center" id="out_extraKmUnits"></td>
-                <td class="text-right" id="out_extraKmRate"></td>
-                <td class="text-right font-bold" id="out_extraKmAmt"></td>
-              </tr>
+<tr id="row_extraKm">
+  <td class="text-center">2</td>
+  <td>
+    <div class="item-title">Extra Kilometers Charge</div>
+    <div class="item-sub" id="out_extraKmSub">km beyond base allowance</div>
+  </td>
+  <td class="text-center" id="out_extraKmQty">0 KM</td>
+  <td class="text-right" id="out_extraKmRate">0.00</td>
+  <td class="text-right font-bold" id="out_extraKmAmt">0.00</td>
+</tr>
 
-              <!-- 3. Extra Days Charge -->
-              <tr id="row_extraDays" style="display: none;">
-                <td class="text-center">3</td>
-                <td>
-                  <div class="item-title">Extra Days / Extension Charge</div>
-                  <div class="item-sub" id="out_extraDaysSub">Extended rental usage</div>
-                </td>
-                <td class="text-center" id="out_extraDaysUnits">0 Days</td>
-                <td class="text-right" id="out_extraDaysRate"></td>
-                <td class="text-right font-bold" id="out_extraDaysAmt">0.00</td>
-              </tr>
+<!-- 3. Extra Days / Extension Charge -->
+<tr id="row_extraDays">
+  <td class="text-center">3</td>
+  <td>
+    <div class="item-title">Extra Days / Extension Charge</div>
+    <div class="item-sub">Extended rental usage</div>
+  </td>
+  <td class="text-center" id="out_extraDaysQty">0 Days</td>
+  <td class="text-right" id="out_extraDayRate">0.00</td>
+  <td class="text-right font-bold" id="out_extraDaysAmt">0.00</td>
+</tr>
 
               <!-- 4. FASTag / Toll Charges -->
               <tr>
