@@ -661,52 +661,6 @@ function updatePreview() {
   }
 }
 
-  const rowAdv = document.getElementById('row_carriedForward');
-  if (rowAdv) {
-    rowAdv.style.display = bookingAdvance > 0 ? '' : 'none';
-    const elAdv = document.getElementById('out_carriedForward');
-    if (elAdv) elAdv.innerText = '- ₹' + bookingAdvance.toLocaleString('en-IN', {minimumFractionDigits: 2});
-  }
-
-  const elGross = document.getElementById('out_grossTotal');
-  if (elGross) elGross.innerText = '₹' + grossTotal.toLocaleString('en-IN', {minimumFractionDigits: 2});
-
-  const elPaid = document.getElementById('out_paid');
-  if (elPaid) elPaid.innerText = '- ₹' + amountPaid.toLocaleString('en-IN', {minimumFractionDigits: 2});
-
-  // --- RENDER BALANCE STRIP ---
-  const badgeStatus = document.getElementById('out_billingStatusBadge');
-  const balanceStrip = document.getElementById('out_balanceStrip');
-  const balanceLabel = document.getElementById('out_balanceLabel');
-  const balanceAmt = document.getElementById('out_balanceAmt');
-
-  if (balanceDue === 0 && grossTotal > 0) {
-    if (badgeStatus) { badgeStatus.innerText = "PAID"; badgeStatus.style.color = "#16a34a"; }
-    if (balanceStrip) { balanceStrip.style.background = "#dcfce7"; }
-    if (balanceLabel) { balanceLabel.innerText = "PAID IN FULL:"; balanceLabel.style.color = "#166534"; }
-    if (balanceAmt) { balanceAmt.innerText = "₹0.00"; balanceAmt.style.color = "#166534"; }
-  } else if (balanceDue > 0) {
-    if (badgeStatus) { badgeStatus.innerText = "Balance Due"; badgeStatus.style.color = "#d97706"; }
-    if (balanceStrip) { balanceStrip.style.background = "#fef2f2"; }
-    if (balanceLabel) { balanceLabel.innerText = "BALANCE DUE:"; balanceLabel.style.color = "#991b1b"; }
-    if (balanceAmt) {
-      balanceAmt.innerText = '₹' + balanceDue.toLocaleString('en-IN', {minimumFractionDigits: 2});
-      balanceAmt.style.color = "#dc2626";
-    }
-  } else if (balanceDue < 0) {
-    if (badgeStatus) { badgeStatus.innerText = "Refund Due"; badgeStatus.style.color = "#2563eb"; }
-    if (balanceStrip) { balanceStrip.style.background = "#eff6ff"; }
-    if (balanceLabel) { balanceLabel.innerText = "REFUND TO CUSTOMER:"; balanceLabel.style.color = "#1e40af"; }
-    if (balanceAmt) {
-      balanceAmt.innerText = '₹' + Math.abs(balanceDue).toLocaleString('en-IN', {minimumFractionDigits: 2});
-      balanceAmt.style.color = "#2563eb";
-    }
-  } else {
-    if (badgeStatus) { badgeStatus.innerText = "PAID"; badgeStatus.style.color = "#16a34a"; }
-    if (balanceStrip) { balanceStrip.style.background = "#dcfce7"; }
-    if (balanceLabel) { balanceLabel.innerText = "TOTAL DUE:"; balanceLabel.style.color = "#166534"; }
-    if (balanceAmt) { balanceAmt.innerText = "₹0.00"; balanceAmt.style.color = "#166534"; }
-  }
  
  
 
