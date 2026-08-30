@@ -310,6 +310,26 @@
   <!-- TOP: Billing Input Panel -->
   <div class="panel">
     <div class="panel-header-row">
+     <!-- MODE TOGGLE BUTTONS -->
+    <div style="display: flex; gap: 10px; margin: 12px 0 16px 0;">
+      <button type="button" id="btnTabNew" style="flex: 1; padding: 10px; background: #0b132b; color: #ffffff; font-weight: 800; font-size: 8pt; border-radius: 6px; cursor: pointer; border: none; letter-spacing: 0.5px;" onclick="switchMode('new')">
+        ➕ CREATE NEW INVOICE
+      </button>
+      <button type="button" id="btnTabOpen" style="flex: 1; padding: 10px; background: #e2e8f0; color: #0b132b; font-weight: 800; font-size: 8pt; border-radius: 6px; cursor: pointer; border: none; letter-spacing: 0.5px;" onclick="fetchAndShowOpenInvoices()">
+        📂 OPEN INVOICES (<span id="openCountBadge">0</span>)
+      </button>
+    </div>
+
+    <!-- OPEN INVOICES LIST CONTAINER -->
+    <div id="openInvoicesModal" style="display: none; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+        <h3 style="margin: 0; font-size: 9pt; color: #991b1b; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px;">Pending / Unpaid Invoices</h3>
+        <button type="button" onclick="closeOpenModal()" style="background: none; border: none; font-size: 11pt; cursor: pointer; color: #64748b; font-weight: 800;">✕</button>
+      </div>
+      <div id="openInvoicesList" style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+        <div style="color: #64748b; font-size: 8pt; text-align: center; padding: 10px;">Click "Open Invoices" to check records.</div>
+      </div>
+    </div>
   <h2>NeeD Billing Input Panel</h2>
   <button type="button" class="btn-logout" onclick="logoutApp()">🔒 Logout</button>
 </div>
@@ -674,7 +694,145 @@
     sessionStorage.removeItem('need_authenticated');
     window.location.reload();
   }
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw5q27LBLPUEulTZyBCHnqfvKM48Ld0nz4bdmYmXotWeuxR7yCv-1ROo2dfy8aI5cWVaQ/exec";
+ let isEditMode = false;
+
+  function switchMode(mode) {
+    const tabNew = document.getElementById('btnTabNew');
+    const tabOpen = document.getElementById('btnTabOpen');
+    const modal = document.getElementById('openInvoicesModal');
+
+    if (mode === 'new') {
+      isEditMode = false;
+      if (modal) modal.style.display = 'none';
+      if (tabNew) { tabNew.style.background = '#0b132b'; tabNew.style.color = '#ffffff'; }
+      if (tabOpen) { tabOpen.style.background = '#e2e8f0'; tabOpen.style.color = '#0b132b'; }
+      resetFormForNewInvoice();
+    } else {
+      if (tabNew) { tabNew.style.background = '#e2e8f0'; tabNew.style.color = '#0b132b'; }
+      if (tabOpen) { tabOpen.style.background = '#0b132b'; tabOpen.style.color = '#ffffff'; }
+    }
+  }
+
+  function closeOpenModal() {
+    const modal = document.getElementById('openInvoicesModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function fetchAndShowOpenInvoices() {
+    switchMode('open');
+    const modal = document.getElementById('openInvoicesModal');
+    if (modal) modal.style.display = 'block';
+    const list = document.getElementById('openInvoicesList');
+    if (list) list.innerHTML = `<div style="font-size: 8pt; color: #64748b; text-align: center; padding: 12px;">⏳ Fetching pending records from Sheet...</div>`;
+
+    const callbackName = 'openInvCallback_' + Math.floor(Math.random() * 1000000);
+    window[callbackName] = function(data) {
+      if (list) list.innerHTML = "";
+      if (data && data.openInvoices && data.openInvoices.length > 0) {
+        const badge = document.getElementById('openCountBadge');
+        if (badge) badge.innerText = data.openInvoices.length;
+        
+        data.openInvoices.forEach(item => {
+          const card = document.createElement('div');
+          card.style = "border: 1px solid #fecaca; background: #fff5f5; padding: 10px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer;";
+          card.innerHTML = `
+            <div>
+              <strong style="color: #0f172a; font-size: 8.5pt;">${item.customerName || '—'}</strong> 
+              <span style="color: #475569; font-size: 7.5pt;">(${item.customerNumber || '—'})</span><br>
+              <span style="font-size: 7.5pt; color: #64748b;">#${item.invoiceNo} • ${item.vehicleNameNumber || '—'} • ${item.date || '—'}</span>
+            </div>
+            <div style="text-align: right; flex-shrink: 0;">
+              <div style="color: #dc2626; font-weight: 800; font-size: 9pt;">Due: ₹${Number(item.balanceDue || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
+              <button type="button" style="margin-top: 4px; padding: 5px 9px; font-size: 7pt; background: #0b132b; color: #ffffff; border: none; border-radius: 4px; cursor: pointer; font-weight: 800; text-transform: uppercase;">Open & Settle</button>
+            </div>
+          `;
+          card.onclick = () => loadInvoiceForSettlement(item);
+          if (list) list.appendChild(card);
+        });
+      } else {
+        const badge = document.getElementById('openCountBadge');
+        if (badge) badge.innerText = "0";
+        if (list) list.innerHTML = `<div style="font-size: 8pt; color: #166534; font-weight: 700; text-align: center; padding: 12px;">✅ No pending invoices! All balances are cleared.</div>`;
+      }
+      delete window[callbackName];
+      const tag = document.getElementById(callbackName);
+      if (tag) tag.remove();
+    };
+
+    const script = document.createElement('script');
+    script.id = callbackName;
+    script.src = `${SCRIPT_URL}?action=getOpenInvoices&callback=${callbackName}`;
+    document.body.appendChild(script);
+  }
+
+  function loadInvoiceForSettlement(item) {
+    isEditMode = true;
+    const modal = document.getElementById('openInvoicesModal');
+    if (modal) modal.style.display = 'none';
+
+    // Populate all Meta Inputs
+    if (document.getElementById('in_invNo')) document.getElementById('in_invNo').value = item.invoiceNo || "";
+    if (document.getElementById('in_date')) document.getElementById('in_date').value = item.date || "";
+    if (document.getElementById('in_name')) document.getElementById('in_name').value = item.customerName !== "—" ? item.customerName : "";
+    if (document.getElementById('in_contact')) document.getElementById('in_contact').value = item.customerNumber !== "—" ? item.customerNumber : "";
+    if (document.getElementById('in_vehicle')) document.getElementById('in_vehicle').value = item.vehicleNameNumber !== "—" ? item.vehicleNameNumber : "";
+    if (document.getElementById('in_rentalType')) document.getElementById('in_rentalType').value = item.rentalType || "Outstation / Multi-Day";
+
+    // Odometer & Trip Packages
+    if (document.getElementById('in_days')) document.getElementById('in_days').value = item.days || "";
+    if (document.getElementById('in_rate')) document.getElementById('in_rate').value = item.rate || 0;
+    if (document.getElementById('in_openKm')) document.getElementById('in_openKm').value = item.openKm || 0;
+    if (document.getElementById('in_closeKm')) document.getElementById('in_closeKm').value = item.closeKm || 0;
+    if (document.getElementById('in_allowKm')) document.getElementById('in_allowKm').value = item.allowKm || "";
+    if (document.getElementById('in_extraKmRate')) document.getElementById('in_extraKmRate').value = item.extraKmRate || 0;
+    if (document.getElementById('in_extraDays')) document.getElementById('in_extraDays').value = item.extraDays || 0;
+    if (document.getElementById('in_extraDayRate')) document.getElementById('in_extraDayRate').value = item.extraDayRate || 0;
+
+    // Fastag & Incidentals
+    if (document.getElementById('in_openFastag')) document.getElementById('in_openFastag').value = item.openFastag || "";
+    if (document.getElementById('in_closeFastag')) document.getElementById('in_closeFastag').value = item.closeFastag || "";
+    if (document.getElementById('in_pickupDrop')) document.getElementById('in_pickupDrop').value = item.pickupDrop || 0;
+    if (document.getElementById('in_fuel')) document.getElementById('in_fuel').value = item.fuel || 0;
+    if (document.getElementById('in_washing')) document.getElementById('in_washing').value = item.washing || "";
+    if (document.getElementById('in_challan')) document.getElementById('in_challan').value = item.challan || "";
+    if (document.getElementById('in_damageDetails')) document.getElementById('in_damageDetails').value = item.damageDetails || "None";
+    if (document.getElementById('in_damage')) document.getElementById('in_damage').value = item.damageAmt || 0;
+
+    // Taxes, Discounts & Payments
+    if (document.getElementById('in_discount')) document.getElementById('in_discount').value = parseFloat(item.discountStr) || 0;
+    if (document.getElementById('in_carriedForward')) document.getElementById('in_carriedForward').value = item.bookingAdvance || 0;
+    if (document.getElementById('in_paid')) document.getElementById('in_paid').value = item.customerPaid || 0;
+
+    updatePreview();
+  }
+
+  function resetFormForNewInvoice() {
+    const fieldsToEmpty = ['in_name', 'in_contact', 'in_vehicle', 'in_days', 'in_allowKm', 'in_openFastag', 'in_closeFastag', 'in_washing', 'in_challan', 'in_paid'];
+    fieldsToEmpty.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+
+    const fieldsToZero = ['in_rate', 'in_openKm', 'in_closeKm', 'in_extraKmRate', 'in_extraDays', 'in_extraDayRate', 'in_pickupDrop', 'in_fuel', 'in_damage', 'in_discount', 'in_carriedForward'];
+    fieldsToZero.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "0";
+    });
+
+    if (document.getElementById('in_damageDetails')) document.getElementById('in_damageDetails').value = "None";
+
+    const todayIST = new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(new Date());
+    if (document.getElementById('in_date')) document.getElementById('in_date').value = todayIST;
+
+    fetchCloudCount();
+    updatePreview();
+  }
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpvnb_uGQ31NjtAlo_Y2zwITjJH9XdMVX5_Ue10WJjFdYq9HJICFVY2_XMYUJVzub-Qg/exec";
 
   // --- HELPER FUNCTIONS ---
 function getNum(id) {
@@ -1058,7 +1216,11 @@ async function saveAndDownloadPDF() {
     });
 
     // 1. स्क्रीन और लोकल स्टोरेज में नंबर को +1 बढ़ाओ (कोई रीसेट नहीं)
+ if (!isEditMode) {
   setInvoiceDisplay(activeInvoiceCount + 1);
+} else {
+  isEditMode = false;
+}
 
   } catch (err) {
     console.error("Save error:", err);
