@@ -602,13 +602,13 @@
               <td style="color: #475569;">Subtotal:</td>
               <td style="text-align: right; font-weight: 600;" id="out_subtotal">₹0.00</td>
             </tr>
-            <tr id="row_gstSummary" style="display: none;">
-              <td style="color: #475569;">GST (<span id="out_gstPct">5%</span>):</td>
-              <td style="text-align: right; color: #475569;" id="out_gstAmt">+ ₹0.00</td>
-            </tr>
             <tr id="row_discountSummary" style="display: none; color: #16a34a;">
               <td>Discount (<span id="out_discountPct">0%</span>):</td>
               <td style="text-align: right;" id="out_discountAmt">- ₹0.00</td>
+            </tr>
+            <tr id="row_gstSummary" style="display: none;">
+              <td style="color: #475569;">GST (<span id="out_gstPct">5%</span>):</td>
+              <td style="text-align: right; color: #475569;" id="out_gstAmt">+ ₹0.00</td>
             </tr>
             <tr id="row_carriedForward" style="display: none; color: #16a34a;">
               <td>Booking Advance/Token Amount:</td>
@@ -1047,13 +1047,15 @@ function updatePreview() {
 
  // --- CALCULATE TOTALS ---
   const subtotal = rentAmt + extraKmAmt + extraDaysAmt + useFastag + pickupDrop + fuel + washing + challan + damage;
-  const gstRate = getNum('in_gstRate');
-  const gstAmt = (subtotal * gstRate) / 100;
   
   const discountPct = getNum('in_discount');
   const discountAmt = (subtotal * discountPct) / 100;
+  const taxableBase = Math.max(0, subtotal - discountAmt);
 
-  const grossTotal = Math.max(0, subtotal + gstAmt - discountAmt);
+  const gstRate = getNum('in_gstRate');
+  const gstAmt = (taxableBase * gstRate) / 100;
+
+  const grossTotal = Math.max(0, taxableBase + gstAmt);
 
   const bookingAdvance = getNum('in_carriedForward');
   const amountPaid = getNum('in_paid');
@@ -1169,15 +1171,17 @@ async function saveAndDownloadPDF() {
     const damageAmt = getNum('in_damage');
     const damageDetails = document.getElementById('in_damageDetails')?.value || "None";
 
-    const subtotal = rentAmt + extraKmAmt + extraDaysAmt + usedFastag + pickupDrop + fuel + washing + challan + damageAmt;
-    const gstRate = getNum('in_gstRate');
-    const gstAmt = (subtotal * gstRate) / 100;
-
+   const subtotal = rentAmt + extraKmAmt + extraDaysAmt + usedFastag + pickupDrop + fuel + washing + challan + damageAmt;
+    
     const discountPct = getNum('in_discount');
     const discountAmt = (subtotal * discountPct) / 100;
     const discountStr = discountPct > 0 ? (discountPct + "%") : "0%";
+    const taxableBase = Math.max(0, subtotal - discountAmt);
 
-    const grossTotal = Math.max(0, subtotal + gstAmt - discountAmt);
+    const gstRate = getNum('in_gstRate');
+    const gstAmt = (taxableBase * gstRate) / 100;
+
+    const grossTotal = Math.max(0, taxableBase + gstAmt);
     const bookingAdvance = getNum('in_carriedForward');
     const customerPaid = getNum('in_paid');
     const totalPaid = bookingAdvance + customerPaid;
