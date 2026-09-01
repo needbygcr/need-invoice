@@ -1055,7 +1055,7 @@ function updatePreview() {
   const gstRate = getNum('in_gstRate');
   const gstAmt = (taxableBase * gstRate) / 100;
 
-  const grossTotal = Math.max(0, taxableBase + gstAmt);
+  const grossTotal = Math.round(Math.max(0, taxableBase + gstAmt));
 
   const bookingAdvance = getNum('in_carriedForward');
   const amountPaid = getNum('in_paid');
@@ -1181,7 +1181,7 @@ async function saveAndDownloadPDF() {
     const gstRate = getNum('in_gstRate');
     const gstAmt = (taxableBase * gstRate) / 100;
 
-    const grossTotal = Math.max(0, taxableBase + gstAmt);
+   const grossTotal = Math.round(Math.max(0, taxableBase + gstAmt));
     const bookingAdvance = getNum('in_carriedForward');
     const customerPaid = getNum('in_paid');
     const totalPaid = bookingAdvance + customerPaid;
