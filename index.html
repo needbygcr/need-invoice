@@ -329,7 +329,17 @@
         📂 OPEN INVOICES (<span id="openCountBadge">0</span>)
       </button>
     </div>
-
+   
+<!-- MODE TOGGLE BUTTONS -->
+    <div style="display: flex; gap: 10px; margin: 12px 0 16px 0;">
+      <button type="button" id="btnTabNew" style="flex: 1; padding: 10px; background: #0b132b; color: #ffffff; font-weight: 800; font-size: 8pt; border-radius: 6px; cursor: pointer; border: none; letter-spacing: 0.5px;" onclick="switchMode('new')">
+        ➕ CREATE NEW INVOICE
+      </button>
+      <button type="button" id="btnTabOpen" style="flex: 1; padding: 10px; background: #e2e8f0; color: #0b132b; font-weight: 800; font-size: 8pt; border-radius: 6px; cursor: pointer; border: none; letter-spacing: 0.5px;" onclick="fetchAndShowOpenInvoices()">
+        📂 OPEN INVOICES (<span id="openCountBadge">0</span>)
+      </button>
+    </div>
+   
     <!-- OPEN INVOICES LIST CONTAINER -->
     <div id="openInvoicesModal" style="display: none; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 14px; margin-bottom: 16px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
@@ -841,6 +851,72 @@
   }
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwpvnb_uGQ31NjtAlo_Y2zwITjJH9XdMVX5_Ue10WJjFdYq9HJICFVY2_XMYUJVzub-Qg/exec";
 
+ // --- HISTORICAL INVOICE SEARCH ---
+  function executeInvoiceSearch() {
+    const input = document.getElementById('searchQuery');
+    const query = (input ? input.value : "").trim();
+    const resultsContainer = document.getElementById('searchResultsList');
+
+    if (!query) {
+      alert("Please enter a customer name, phone number, or invoice number to search.");
+      return;
+    }
+
+    if (resultsContainer) {
+      resultsContainer.style.display = 'block';
+      resultsContainer.innerHTML = `<div style="font-size: 8pt; color: #64748b; text-align: center; padding: 10px;">⏳ Searching records for "${query}"...</div>`;
+    }
+
+    const callbackName = 'searchCallback_' + Math.floor(Math.random() * 1000000);
+    window[callbackName] = function(data) {
+      if (resultsContainer) resultsContainer.innerHTML = '';
+
+      if (data && data.results && data.results.length > 0) {
+        data.results.forEach(item => {
+          const card = document.createElement('div');
+          card.style = "border: 1px solid #cbd5e1; background: #f8fafc; padding: 10px 12px; border-radius: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer;";
+          
+          const isPaid = (item.status || "").indexOf("PAID") !== -1 && !(Number(item.balanceDue) > 0);
+          const statusBadge = isPaid 
+            ? `<span style="color: #16a34a; font-weight: 800; font-size: 8pt;">PAID</span>`
+            : `<span style="color: #dc2626; font-weight: 800; font-size: 8pt;">DUE: ₹${Number(item.balanceDue || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>`;
+
+          card.innerHTML = `
+            <div>
+              <strong style="color: #0f172a; font-size: 8.5pt;">${item.customerName || '—'}</strong>
+              <span style="color: #475569; font-size: 7.5pt;">(${item.customerNumber || '—'})</span><br>
+              <span style="font-size: 7.5pt; color: #64748b;">#${item.invoiceNo} • ${item.vehicleNameNumber || '—'} • Total: ₹${Number(item.grossTotal || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})} • ${item.date || '—'}</span>
+            </div>
+            <div style="text-align: right; flex-shrink: 0;">
+              <div>${statusBadge}</div>
+              <button type="button" style="margin-top: 4px; padding: 4px 9px; font-size: 7pt; background: #0b132b; color: #ffffff; border: none; border-radius: 4px; cursor: pointer; font-weight: 800; text-transform: uppercase;">Load & Download</button>
+            </div>
+          `;
+
+          card.onclick = () => {
+            loadInvoiceForSettlement(item);
+            if (resultsContainer) resultsContainer.style.display = 'none';
+          };
+
+          if (resultsContainer) resultsContainer.appendChild(card);
+        });
+      } else {
+        if (resultsContainer) {
+          resultsContainer.innerHTML = `<div style="font-size: 8pt; color: #dc2626; font-weight: 700; text-align: center; padding: 10px;">❌ No invoice found matching "${query}".</div>`;
+        }
+      }
+
+      delete window[callbackName];
+      const tag = document.getElementById(callbackName);
+      if (tag) tag.remove();
+    };
+
+    const script = document.createElement('script');
+    script.id = callbackName;
+    script.src = `${SCRIPT_URL}?action=searchInvoice&query=${encodeURIComponent(query)}&callback=${callbackName}`;
+    document.body.appendChild(script);
+  }
+ 
   // --- HELPER FUNCTIONS ---
 function getNum(id) {
   const el = document.getElementById(id);
