@@ -307,10 +307,14 @@
 
 <div class="container" id="mainContainer" style="display: none;">
   
-  <!-- TOP: Billing Input Panel -->
+<!-- TOP: Billing Input Panel -->
   <div class="panel">
     <div class="panel-header-row">
-     <!-- MODE TOGGLE BUTTONS -->
+      <h2 style="margin: 0;">NeeD Billing Input Panel</h2>
+      <button type="button" class="btn-logout" onclick="logoutApp()">🔒 Logout</button>
+    </div>
+
+    <!-- MODE TOGGLE BUTTONS -->
     <div style="display: flex; gap: 10px; margin: 12px 0 16px 0;">
       <button type="button" id="btnTabNew" style="flex: 1; padding: 10px; background: #0b132b; color: #ffffff; font-weight: 800; font-size: 8pt; border-radius: 6px; cursor: pointer; border: none; letter-spacing: 0.5px;" onclick="switchMode('new')">
         ➕ CREATE NEW INVOICE
@@ -330,9 +334,6 @@
         <div style="color: #64748b; font-size: 8pt; text-align: center; padding: 10px;">Click "Open Invoices" to check records.</div>
       </div>
     </div>
-  <h2>NeeD Billing Input Panel</h2>
-  <button type="button" class="btn-logout" onclick="logoutApp()">🔒 Logout</button>
-</div>
     
     <div class="section-label">1. Basic Invoice, Customer & Vehicle Meta</div>
     <div class="grid-4">
